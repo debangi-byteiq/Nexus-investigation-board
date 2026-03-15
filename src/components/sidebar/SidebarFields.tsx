@@ -31,37 +31,3 @@ export const Section: React.FC<SectionProps> = ({ title, children }) => (
     {children}
   </div>
 );
-
-interface TagRowProps { tags: string[]; }
-
-export const TagRow: React.FC<TagRowProps> = ({ tags }) => (
-  <div className="tag-row" role="list" aria-label="Tags">
-    {tags.map(t => (
-      <span key={t} className="entity-tag" role="listitem">{t}</span>
-    ))}
-  </div>
-);
-
-interface TimelineProps {
-  entries: { event: string; timestamp: string }[];
-  accentColor: string;
-}
-
-export const Timeline: React.FC<TimelineProps> = ({ entries, accentColor }) => (
-  <ol className="timeline-list" aria-label="Activity timeline">
-    {entries.map((entry, i) => (
-      <li key={i} className="timeline-item">
-        <div className="tl-dot" style={{ borderColor: accentColor + '55' }} aria-hidden="true" />
-        <div className="tl-right">
-          <div className="tl-event">{entry.event}</div>
-          <time className="tl-time">{entry.timestamp}</time>
-        </div>
-      </li>
-    ))}
-  </ol>
-);
-
-interface NoteBlockProps { text: string; }
-export const NoteBlock: React.FC<NoteBlockProps> = ({ text }) => (
-  <blockquote className="note-block">{text}</blockquote>
-);

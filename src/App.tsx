@@ -1,31 +1,26 @@
 import React, { useState, useCallback } from 'react';
 import type { GraphNode, EntityType } from './types';
-import { GRAPH_DATA, CASE_CONTEXT } from './data/mockData';
-import { useLoadingSequence } from './hooks/useLoadingSequence';
-import { useToast } from './hooks/useToast';
-import LoadingScreen from './components/ui/LoadingScreen';
-import Toast from './components/ui/Toast';
-import TopBar from './components/layout/TopBar';
-import CaseBand from './components/layout/CaseBand';
+import { MOCK_GRAPH_DATA } from './data/mockData';
 import GraphCanvas from './components/graph/GraphCanvas';
 import EntitySidebar from './components/sidebar/EntitySidebar';
 import './styles/main.css';
 
-const App: React.FC = () => {
-  // ── Loading
-  const { currentStep, completedSteps, progress, isLoaded } = useLoadingSequence();
+/**
+ * NEXUS Investigation Board — Root Component
+ *
+ * Local dev:  Uses MOCK_GRAPH_DATA
+ * In D365:   Replace with fetchGraphData(context.webAPI, caseId)
+ *            from './data/dataverse'
+ */
 
-  // ── Toast
-  const { message: toastMsg, visible: toastVisible, showToast } = useToast();
+const App: React.FC = () => {
+  // ── Graph data (mock for now, will come from Dataverse in PCF)
+  const graphData = MOCK_GRAPH_DATA;
 
   // ── Graph state
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Set<EntityType>>(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [syncTime] = useState(() =>
-    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  );
 
   // ── Node click handler
   const handleNodeClick = useCallback((node: GraphNode) => {
@@ -47,14 +42,14 @@ const App: React.FC = () => {
 
   // ── Related case navigation
   const handleRelatedCaseClick = useCallback((caseId: string) => {
-    showToast(`Navigating to case ${caseId} in Dataverse…`);
-  }, [showToast]);
+    console.log(`Navigate to case ${caseId} in Dataverse`);
+  }, []);
 
   // ── Open in Dataverse
   const handleOpenInDataverse = useCallback(() => {
     const id = selectedNode?.id ?? 'record';
-    showToast(`Opening ${id} in Dataverse…`);
-  }, [selectedNode, showToast]);
+    console.log(`Opening ${id} in Dataverse`);
+  }, [selectedNode]);
 
   // ── Filter toggle
   const handleToggleFilter = useCallback((type: EntityType) => {
@@ -69,43 +64,17 @@ const App: React.FC = () => {
     setActiveFilters(new Set());
   }, []);
 
-  // ── Reheat
-  const handleReheat = useCallback(() => {
-    showToast('Graph layout re-energised');
-  }, [showToast]);
-
   return (
-    <div className="app-shell">
-      {/* Loading overlay (unmounts from DOM after transition) */}
-      <LoadingScreen
-        currentStep={currentStep}
-        completedSteps={completedSteps}
-        progress={progress}
-        visible={!isLoaded}
-      />
-
-      {/* Host application chrome */}
-      <TopBar caseContext={CASE_CONTEXT} />
-      <CaseBand
-        caseContext={CASE_CONTEXT}
-        nodeCount={GRAPH_DATA.nodes.length}
-        edgeCount={GRAPH_DATA.links.length}
-        syncTime={isLoaded ? syncTime : '—'}
-      />
-
-      {/* PCF Component Board */}
+    <div className="app-shell pcf-embed">
       <main className="board-area" role="main" aria-label="Investigation Board">
         <GraphCanvas
-          data={GRAPH_DATA}
+          data={graphData}
           activeFilters={activeFilters}
-          searchQuery={searchQuery}
           sidebarOpen={sidebarOpen}
           onNodeClick={handleNodeClick}
           onBackgroundClick={handleBackgroundClick}
           onToggleFilter={handleToggleFilter}
           onClearFilters={handleClearFilters}
-          onSearchChange={setSearchQuery}
-          onReheat={handleReheat}
         />
 
         <EntitySidebar
@@ -116,8 +85,6 @@ const App: React.FC = () => {
           onOpenInDataverse={handleOpenInDataverse}
         />
       </main>
-
-      <Toast message={toastMsg} visible={toastVisible} />
     </div>
   );
 };

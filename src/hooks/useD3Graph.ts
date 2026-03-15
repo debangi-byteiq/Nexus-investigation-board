@@ -123,7 +123,7 @@ export function useD3Graph(
           .attr('points', hexPoints(r - 8))
           .attr('fill', 'none')
           .attr('stroke', c).attr('stroke-width', 0.6).attr('stroke-opacity', 0.35);
-      } else if (d.type === 'contact') {
+      } else if (d.type === 'person') {
         sel.append('circle')
           .attr('class', 'node-shape')
           .attr('r', r)
@@ -136,7 +136,7 @@ export function useD3Graph(
           .attr('r', r - 7)
           .attr('fill', 'none')
           .attr('stroke', c).attr('stroke-width', 0.5).attr('stroke-opacity', 0.3);
-      } else if (d.type === 'connection') {
+      } else if (d.type === 'caseEntity') {
         sel.append('rect')
           .attr('class', 'node-shape')
           .attr('x', -r).attr('y', -(r * 0.6))
@@ -145,7 +145,7 @@ export function useD3Graph(
           .attr('fill', c).attr('fill-opacity', 0.12)
           .attr('stroke', c).attr('stroke-width', 1.8)
           .attr('filter', `url(#glow-${d.type})`);
-      } else if (d.type === 'annotation') {
+      } else if (d.type === 'evidence') {
         // Document shape with dog-ear
         sel.append('rect')
           .attr('class', 'node-shape')
@@ -158,14 +158,6 @@ export function useD3Graph(
         sel.append('polygon')
           .attr('points', `${r - 9},${-(r * 0.8)} ${r},${-(r * 0.8) + 9} ${r},${-(r * 0.8)}`)
           .attr('fill', c).attr('fill-opacity', 0.5);
-      } else if (d.type === 'related') {
-        sel.append('polygon')
-          .attr('class', 'node-shape')
-          .attr('points', diamondPoints(r))
-          .attr('fill', c).attr('fill-opacity', 0.12)
-          .attr('stroke', c).attr('stroke-width', 1.8)
-          .attr('stroke-dasharray', '5,2')
-          .attr('filter', `url(#glow-${d.type})`);
       }
     });
 
@@ -179,7 +171,7 @@ export function useD3Graph(
       .style('pointer-events', 'none')
       .text((d) => {
         const icons: Record<string, string> = {
-          case: '📁', contact: '👤', connection: '🔗', annotation: '📎', related: '⬡',
+          case: '📁', person: '👤', caseEntity: '🔗', evidence: '📎',
         };
         return icons[d.type] ?? '◉';
       });
@@ -258,9 +250,8 @@ export function useD3Graph(
         .id(d => d.id)
         .distance(l => {
           const tgt = l.target as GraphNode;
-          if (tgt.type === 'connection') return 110;
-          if (tgt.type === 'related') return 200;
-          if (tgt.type === 'annotation') return 170;
+          if (tgt.type === 'caseEntity') return 110;
+          if (tgt.type === 'evidence') return 170;
           return 165;
         })
         .strength(0.45))

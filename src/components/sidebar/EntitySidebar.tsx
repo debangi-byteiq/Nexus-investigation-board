@@ -14,6 +14,18 @@ interface Props {
 const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClick, onOpenInDataverse }) => {
   const color = node ? ENTITY_COLORS[node.type] : 'var(--text3)';
 
+  // Extract the record-level ID from details
+  const getRecordId = (): string => {
+    if (!node) return '';
+    const d = node.details;
+    switch (d.kind) {
+      case 'case':       return d.caseId;
+      case 'person':     return d.personId;
+      case 'caseEntity': return d.caseEntityId;
+      case 'evidence':   return d.evidenceId;
+    }
+  };
+
   return (
     <>
       {/* Click-away backdrop */}
@@ -57,19 +69,13 @@ const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClic
                 {node ? ENTITY_LABELS[node.type] : ''}
               </div>
               <h2 className="sidebar-entity-name">
-                {node?.details.name ?? ''}
+                {node?.label ?? ''}
               </h2>
               <div className="sidebar-entity-dv">
                 {node ? (
                   <>
-                    {('contactId' in node.details ? node.details.contactId
-                      : 'caseId' in node.details ? node.details.caseId
-                      : 'connectionId' in node.details ? node.details.connectionId
-                      : 'annotationId' in node.details ? node.details.annotationId
-                      : '') }
-                    {'dvId' in node.details && node.details.dvId
-                      ? ` · dv:${node.details.dvId}`
-                      : ''}
+                    {getRecordId()}
+                    {node.details.dvId ? ` · dv:${node.details.dvId}` : ''}
                   </>
                 ) : ''}
               </div>

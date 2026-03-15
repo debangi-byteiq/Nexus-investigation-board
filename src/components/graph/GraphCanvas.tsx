@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { GraphData, GraphNode, EntityType } from '../../types';
 import { useD3Graph } from '../../hooks/useD3Graph';
 import GraphControls from './GraphControls';
-import SearchBar from './SearchBar';
 import LegendPanel from './LegendPanel';
 
 interface TooltipState {
@@ -15,20 +14,17 @@ interface TooltipState {
 interface Props {
   data: GraphData;
   activeFilters: Set<EntityType>;
-  searchQuery: string;
   sidebarOpen: boolean;
   onNodeClick: (node: GraphNode) => void;
   onBackgroundClick: () => void;
   onToggleFilter: (type: EntityType) => void;
   onClearFilters: () => void;
-  onSearchChange: (q: string) => void;
-  onReheat: () => void;
 }
 
 const GraphCanvas: React.FC<Props> = ({
-  data, activeFilters, searchQuery, sidebarOpen,
+  data, activeFilters, sidebarOpen,
   onNodeClick, onBackgroundClick,
-  onToggleFilter, onClearFilters, onSearchChange, onReheat: onReheatProp,
+  onToggleFilter, onClearFilters,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -77,13 +73,12 @@ const GraphCanvas: React.FC<Props> = ({
     onNodeClick,
     onBackgroundClick,
     activeFilters,
-    searchQuery,
+    searchQuery: '',
   });
 
   const handleReheat = useCallback(() => {
     reheat();
-    onReheatProp();
-  }, [reheat, onReheatProp]);
+  }, [reheat]);
 
   return (
     <div className="graph-canvas-wrap" ref={containerRef}>
@@ -103,7 +98,6 @@ const GraphCanvas: React.FC<Props> = ({
       />
 
       {/* Floating controls */}
-      <SearchBar value={searchQuery} onChange={onSearchChange} />
       <GraphControls
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}

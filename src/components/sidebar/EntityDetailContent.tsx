@@ -1,10 +1,9 @@
 import React from 'react';
 import type {
-  EntityDetails, CaseDetails, ContactDetails,
-  ConnectionDetails, AnnotationDetails, RelatedCaseDetails,
+  EntityDetails, CaseDetails, PersonDetails,
+  CaseEntityDetails, EvidenceDetails,
 } from '../../types';
-import { Field, Section, TagRow, Timeline, NoteBlock } from './SidebarFields';
-import RelatedCasesAccordion from './RelatedCasesAccordion';
+import { Field, Section } from './SidebarFields';
 
 interface Props {
   details: EntityDetails;
@@ -13,139 +12,55 @@ interface Props {
 }
 
 // ── Case ──────────────────────────────────────────────────────────────────────
-const CaseContent: React.FC<{ d: CaseDetails; color: string; onRelated: (id: string) => void }> = ({ d, color, onRelated }) => (
+const CaseContent: React.FC<{ d: CaseDetails }> = ({ d }) => (
   <>
     <Section title="Record Details">
       <div className="fgrid">
-        <Field label="Case ID"  value={d.caseId} accent />
-        <Field label="Status"   value={d.status} warn />
-        <Field label="Priority" value={d.priority} warn />
-        <Field label="Type"     value={d.type} accent />
-        <Field label="Opened"   value={d.opened} />
-        <Field label="Lead Detective" value={d.lead} />
+        <Field label="Case Number" value={d.caseNumber} accent />
+        <Field label="Status" value={d.isActive ? 'Active' : 'Inactive'} warn={!d.isActive} ok={d.isActive} />
+        <Field label="Case Name" value={d.name} span />
+        <Field label="Open Date" value={d.openDate} />
       </div>
-    </Section>
-    <Section title="Description">
-      <NoteBlock text={d.description} />
-    </Section>
-    <Section title="Tags">
-      <TagRow tags={d.tags} />
-    </Section>
-    <Section title="Activity Log">
-      <Timeline entries={d.timeline} accentColor={color} />
     </Section>
   </>
 );
 
-// ── Contact ───────────────────────────────────────────────────────────────────
-const ContactContent: React.FC<{ d: ContactDetails; color: string; onRelated: (id: string) => void }> = ({ d, color, onRelated }) => (
+// ── Person ─────────────────────────────────────────────────────────────────────
+const PersonContent: React.FC<{ d: PersonDetails }> = ({ d }) => (
   <>
     <Section title="Record Details">
       <div className="fgrid">
-        <Field label="Role"       value={d.role} orange />
-        <Field label="Status"     value={d.status} />
-        <Field label="DOB"        value={d.dob} />
-        <Field label="Phone"      value={d.phone} />
-        <Field label="Address"    value={d.address} span />
-        <Field label="Occupation" value={d.occupation} span />
-        {d.priors && <Field label="Prior Record" value={d.priors} span warn />}
+        <Field label="Name" value={d.name} span />
+        <Field label="Role" value={d.isSuspect ? 'Suspect' : 'Person'} orange={d.isSuspect} />
+        <Field label="Date of Birth" value={d.dateOfBirth} />
+        <Field label="Phone" value={d.phoneNumber} />
       </div>
-    </Section>
-    <Section title="Investigative Note">
-      <NoteBlock text={d.note} />
-    </Section>
-    <Section title="Tags">
-      <TagRow tags={d.tags} />
-    </Section>
-    <Section title="Activity Log">
-      <Timeline entries={d.timeline} accentColor={color} />
-    </Section>
-    {d.relatedCases.length > 0 && (
-      <Section title="Cross-Case References">
-        <RelatedCasesAccordion cases={d.relatedCases} onCaseClick={onRelated} />
-      </Section>
-    )}
-  </>
-);
-
-// ── Connection ────────────────────────────────────────────────────────────────
-const ConnectionContent: React.FC<{ d: ConnectionDetails; color: string; onRelated: (id: string) => void }> = ({ d, color, onRelated }) => (
-  <>
-    <Section title="Record Details">
-      <div className="fgrid">
-        <Field label="From"         value={d.from} span accent />
-        <Field label="To"           value={d.to} span accent />
-        <Field label="Type"         value={d.relType} />
-        <Field label="Status"       value={d.status} ok />
-        <Field label="Confirmed By" value={d.confirmedBy} />
-        <Field label="Since"        value={d.since} />
-      </div>
-    </Section>
-    <Section title="Notes">
-      <NoteBlock text={d.note} />
-    </Section>
-    <Section title="Tags">
-      <TagRow tags={d.tags} />
-    </Section>
-    <Section title="Activity Log">
-      <Timeline entries={d.timeline} accentColor={color} />
     </Section>
   </>
 );
 
-// ── Annotation ────────────────────────────────────────────────────────────────
-const AnnotationContent: React.FC<{ d: AnnotationDetails; color: string; onRelated: (id: string) => void }> = ({ d, color, onRelated }) => (
+// ── Case Entity ───────────────────────────────────────────────────────────────
+const CaseEntityContent: React.FC<{ d: CaseEntityDetails }> = ({ d }) => (
   <>
     <Section title="Record Details">
       <div className="fgrid">
-        <Field label="Document Type" value={d.docType} span accent />
-        <Field label="Created By"    value={d.createdBy} span />
-        <Field label="Date"          value={d.created} />
-        <Field label="Status"        value={d.status} ok />
-        <Field label="Subject"       value={d.subject} span />
+        <Field label="Entity Name" value={d.entityName} span accent />
+        <Field label="Entity Type" value={d.entityType} />
       </div>
     </Section>
-    <Section title="Content">
-      <NoteBlock text={d.note} />
-    </Section>
-    <Section title="Tags">
-      <TagRow tags={d.tags} />
-    </Section>
-    <Section title="Activity Log">
-      <Timeline entries={d.timeline} accentColor={color} />
-    </Section>
-    {d.relatedCases.length > 0 && (
-      <Section title="Cross-Case References">
-        <RelatedCasesAccordion cases={d.relatedCases} onCaseClick={onRelated} />
-      </Section>
-    )}
   </>
 );
 
-// ── Related Case ──────────────────────────────────────────────────────────────
-const RelatedCaseContent: React.FC<{ d: RelatedCaseDetails; color: string; onRelated: (id: string) => void }> = ({ d, color, onRelated }) => (
+// ── Evidence ──────────────────────────────────────────────────────────────────
+const EvidenceContent: React.FC<{ d: EvidenceDetails }> = ({ d }) => (
   <>
-    <Section title="Link Details">
+    <Section title="Record Details">
       <div className="fgrid">
-        <Field label="Link Type"   value={d.linkType} accent />
-        <Field label="Confidence"  value={d.confidence} ok />
-        <Field label="Status"      value={d.status} />
-        <Field label="Closed"      value={d.closedDate ?? 'Active'} />
-        <Field label="Overlap"     value={d.overlap} span />
-        <Field label="Link Reason" value={d.linkReason} span />
+        <Field label="Evidence Name" value={d.evidenceName} span accent />
+        <Field label="Evidence Type" value={d.evidenceType} />
+        <Field label="Collected Date" value={d.collectedDate} />
       </div>
     </Section>
-    <Section title="Tags">
-      <TagRow tags={d.tags} />
-    </Section>
-    <Section title="Activity Log">
-      <Timeline entries={d.timeline} accentColor={color} />
-    </Section>
-    {d.relatedCases.length > 0 && (
-      <Section title="Further References">
-        <RelatedCasesAccordion cases={d.relatedCases} onCaseClick={onRelated} />
-      </Section>
-    )}
   </>
 );
 
@@ -153,15 +68,13 @@ const RelatedCaseContent: React.FC<{ d: RelatedCaseDetails; color: string; onRel
 const EntityDetailContent: React.FC<Props> = ({ details, accentColor, onRelatedCaseClick }) => {
   switch (details.kind) {
     case 'case':
-      return <CaseContent d={details} color={accentColor} onRelated={onRelatedCaseClick} />;
-    case 'contact':
-      return <ContactContent d={details} color={accentColor} onRelated={onRelatedCaseClick} />;
-    case 'connection':
-      return <ConnectionContent d={details} color={accentColor} onRelated={onRelatedCaseClick} />;
-    case 'annotation':
-      return <AnnotationContent d={details} color={accentColor} onRelated={onRelatedCaseClick} />;
-    case 'related':
-      return <RelatedCaseContent d={details} color={accentColor} onRelated={onRelatedCaseClick} />;
+      return <CaseContent d={details} />;
+    case 'person':
+      return <PersonContent d={details} />;
+    case 'caseEntity':
+      return <CaseEntityContent d={details} />;
+    case 'evidence':
+      return <EvidenceContent d={details} />;
   }
 };
 

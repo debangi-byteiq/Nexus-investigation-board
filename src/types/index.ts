@@ -1,17 +1,10 @@
-// ─── Entity Types ─────────────────────────────────────────────────────────────
+// ─── Entity Types (aligned with Dataverse tables) ─────────────────────────────
 
-export type EntityType = 'case' | 'contact' | 'connection' | 'annotation' | 'related';
+export type EntityType = 'case' | 'person' | 'caseEntity' | 'evidence';
 
 export interface TimelineEntry {
   event: string;
   timestamp: string;
-}
-
-export interface RelatedCaseRef {
-  id: string;
-  name: string;
-  matchReason: string;
-  status: 'Open' | 'Active' | 'Closed' | 'Cold';
 }
 
 // ─── Entity Detail Payloads ───────────────────────────────────────────────────
@@ -21,89 +14,47 @@ export interface CaseDetails {
   caseId: string;
   dvId: string;
   name: string;
-  status: string;
-  priority: string;
-  type: string;
-  opened: string;
-  lead: string;
-  description: string;
-  tags: string[];
-  timeline: TimelineEntry[];
+  caseNumber: string;
+  openDate: string;
+  isActive: boolean;
 }
 
-export interface ContactDetails {
-  kind: 'contact';
-  contactId: string;
+export interface PersonDetails {
+  kind: 'person';
+  personId: string;
   dvId: string;
   name: string;
-  role: 'Suspect' | 'Victim' | 'Witness' | 'Person of Interest';
-  status: string;
-  dob: string;
-  phone: string;
-  address: string;
-  occupation: string;
-  priors?: string;
-  note: string;
-  tags: string[];
-  timeline: TimelineEntry[];
-  relatedCases: RelatedCaseRef[];
+  dateOfBirth: string;
+  phoneNumber: string;
+  isSuspect: boolean;
 }
 
-export interface ConnectionDetails {
-  kind: 'connection';
-  connectionId: string;
+export interface CaseEntityDetails {
+  kind: 'caseEntity';
+  caseEntityId: string;
   dvId: string;
-  name: string;
-  from: string;
-  to: string;
-  relType: string;
-  confirmedBy: string;
-  since: string;
-  status: string;
-  note: string;
-  tags: string[];
-  timeline: TimelineEntry[];
-  relatedCases: RelatedCaseRef[];
+  entityName: string;
+  entityType: string;
+  linkedCaseId: string;
+  linkedPersonId: string | null;
 }
 
-export interface AnnotationDetails {
-  kind: 'annotation';
-  annotationId: string;
+export interface EvidenceDetails {
+  kind: 'evidence';
+  evidenceId: string;
   dvId: string;
-  name: string;
-  docType: string;
-  createdBy: string;
-  created: string;
-  status: string;
-  subject: string;
-  note: string;
-  tags: string[];
-  timeline: TimelineEntry[];
-  relatedCases: RelatedCaseRef[];
-}
-
-export interface RelatedCaseDetails {
-  kind: 'related';
-  caseId: string;
-  dvId: string;
-  name: string;
-  linkType: string;
-  confidence: string;
-  status: string;
-  closedDate: string | null;
-  linkReason: string;
-  overlap: string;
-  tags: string[];
-  timeline: TimelineEntry[];
-  relatedCases: RelatedCaseRef[];
+  evidenceName: string;
+  evidenceType: string;
+  collectedDate: string;
+  linkedCaseId: string;
+  linkedCaseEntityId: string | null;
 }
 
 export type EntityDetails =
   | CaseDetails
-  | ContactDetails
-  | ConnectionDetails
-  | AnnotationDetails
-  | RelatedCaseDetails;
+  | PersonDetails
+  | CaseEntityDetails
+  | EvidenceDetails;
 
 // ─── Graph Node & Link ────────────────────────────────────────────────────────
 
@@ -132,38 +83,6 @@ export interface GraphLink {
 export interface GraphData {
   nodes: GraphNode[];
   links: GraphLink[];
-}
-
-// ─── Case (host context) ─────────────────────────────────────────────────────
-
-export interface CaseContext {
-  caseId: string;
-  caseName: string;
-  caseType: string;
-  status: 'Open' | 'Active' | 'Closed' | 'Cold';
-  priority: 'Critical' | 'High' | 'Medium' | 'Low';
-  lead: string;
-}
-
-// ─── App State ────────────────────────────────────────────────────────────────
-
-export type LoadingStep =
-  | 'context'
-  | 'contacts'
-  | 'connections'
-  | 'annotations'
-  | 'related'
-  | 'render'
-  | 'done';
-
-export interface AppState {
-  loadingStep: LoadingStep;
-  isLoaded: boolean;
-  selectedNode: GraphNode | null;
-  hoveredNode: GraphNode | null;
-  activeFilters: Set<EntityType>;
-  searchQuery: string;
-  sidebarOpen: boolean;
 }
 
 // ─── D3 Transform ─────────────────────────────────────────────────────────────
