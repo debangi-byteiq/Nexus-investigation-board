@@ -1,0 +1,20 @@
+Nexus-investigation-board/src/components/layout/CaseBand.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'CaseContext'.
+Nexus-investigation-board/src/components/layout/TopBar.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'CaseContext'.
+Nexus-investigation-board/src/components/sidebar/RelatedCasesAccordion.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'RelatedCaseRef'.
+Nexus-investigation-board/src/components/ui/LoadingScreen.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'LoadingStep'.
+Nexus-investigation-board/src/components/ui/LoadingScreen.tsx(3,10): error TS2305: Module '"../../utils/constants"' has no exported member 'LOADING_STEPS'.
+Nexus-investigation-board/src/components/ui/LoadingScreen.tsx(27,35): error TS7031: Binding element 'key' implicitly has an 'any' type.
+Nexus-investigation-board/src/components/ui/LoadingScreen.tsx(27,40): error TS7031: Binding element 'label' implicitly has an 'any' type.
+Nexus-investigation-board/src/hooks/useLoadingSequence.ts(2,15): error TS2305: Module '"../types"' has no exported member 'LoadingStep'.
+Nexus-investigation-board/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+  There are types at 'D:/ncs-nexus-investigation-board/Nexus-investigation-board/node_modules/vite/dist/node/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+Nexus-investigation-board/vite.config.ts(2,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.
+  There are types at 'D:/ncs-nexus-investigation-board/Nexus-investigation-board/node_modules/@vitejs/plugin-react/dist/index.d.ts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+NexusBoard/components/layout/CaseBand.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'CaseContext'.
+NexusBoard/components/layout/TopBar.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'CaseContext'.
+NexusBoard/components/sidebar/RelatedCasesAccordion.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'RelatedCaseRef'.
+NexusBoard/components/ui/LoadingScreen.tsx(2,15): error TS2305: Module '"../../types"' has no exported member 'LoadingStep'.
+NexusBoard/components/ui/LoadingScreen.tsx(3,10): error TS2305: Module '"../../utils/constants"' has no exported member 'LOADING_STEPS'.
+NexusBoard/components/ui/LoadingScreen.tsx(27,35): error TS7031: Binding element 'key' implicitly has an 'any' type.
+NexusBoard/components/ui/LoadingScreen.tsx(27,40): error TS7031: Binding element 'label' implicitly has an 'any' type.
+NexusBoard/hooks/useLoadingSequence.ts(2,15): error TS2305: Module '"../types"' has no exported member 'LoadingStep'.

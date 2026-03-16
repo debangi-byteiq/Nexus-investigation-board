@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="NcsNexus" constructor="InvestigationBoard" version="1.0.0"
+           display-name-key="NEXUS Investigation Board"
+           description-key="Interactive graph-based investigation board for D365 Case entities"
+           control-type="standard">
+
+    <external-service-usage enabled="false">
+    </external-service-usage>
+
+    <!-- Bound to Case ID — drag this control onto the Case form -->
+    <property name="caseId"
+              display-name-key="Case ID"
+              description-key="The GUID of the current Case record"
+              of-type="SingleLine.Text"
+              usage="bound"
+              required="true" />
+
+    <resources>
+      <code path="index.ts" order="1" />
+      <css path="css/NexusBoard.css" order="1" />
+    </resources>
+
+    <feature-usage>
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
