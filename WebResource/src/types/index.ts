@@ -1,6 +1,6 @@
 // ─── Entity Types (aligned with Dataverse tables) ─────────────────────────────
 
-export type EntityType = 'case' | 'person' | 'caseEntity' | 'evidence';
+export type EntityType = 'case' | 'person' | 'caseEntity' | 'firm' | 'vehicle' | 'location' | 'evidence';
 
 export interface TimelineEntry {
   event: string;

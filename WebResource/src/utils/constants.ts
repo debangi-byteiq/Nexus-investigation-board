@@ -4,6 +4,9 @@ export const ENTITY_COLORS: Record<EntityType, string> = {
   case:       '#ff5f5f',
   person:     '#ff9040',
   caseEntity: '#f0d040',
+  firm:       '#56c7ff',
+  vehicle:    '#b888ff',
+  location:   '#3dd1c3',
   evidence:   '#3ed98a',
 };
 
@@ -11,6 +14,9 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
   case:       'Case',
   person:     'Person',
   caseEntity: 'Case Entity',
+  firm:       'Firm',
+  vehicle:    'Vehicle',
+  location:   'Location',
   evidence:   'Evidence',
 };
 
@@ -18,6 +24,9 @@ export const ENTITY_ICONS: Record<EntityType, string> = {
   case:       '📁',
   person:     '👤',
   caseEntity: '🔗',
+  firm:       '🏢',
+  vehicle:    '🚗',
+  location:   '📍',
   evidence:   '📎',
 };
 
@@ -25,6 +34,9 @@ export const ENTITY_RADII: Record<EntityType, number> = {
   case:       36,
   person:     24,
   caseEntity: 18,
+  firm:       20,
+  vehicle:    20,
+  location:   20,
   evidence:   20,
 };
 

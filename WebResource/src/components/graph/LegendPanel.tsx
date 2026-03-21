@@ -26,6 +26,24 @@ const SHAPE_SVG: Record<EntityType, React.ReactNode> = {
       <rect x="1" y="5" width="16" height="8" rx="4" fill={ENTITY_COLORS.caseEntity} opacity="0.9" />
     </svg>
   ),
+  firm: (
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <rect x="2" y="2" width="14" height="14" rx="2" fill={ENTITY_COLORS.firm} opacity="0.9" />
+    </svg>
+  ),
+  vehicle: (
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <rect x="1" y="6" width="16" height="7" rx="2" fill={ENTITY_COLORS.vehicle} opacity="0.9" />
+      <circle cx="5" cy="14" r="1.5" fill={ENTITY_COLORS.vehicle} opacity="0.95" />
+      <circle cx="13" cy="14" r="1.5" fill={ENTITY_COLORS.vehicle} opacity="0.95" />
+    </svg>
+  ),
+  location: (
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <path d="M9 1.5C6 1.5 3.8 3.8 3.8 6.7c0 3.8 4.4 8.6 5.2 9.4c0.8-0.8 5.2-5.6 5.2-9.4C14.2 3.8 12 1.5 9 1.5z" fill={ENTITY_COLORS.location} opacity="0.9" />
+      <circle cx="9" cy="6.8" r="2" fill="rgba(8, 16, 30, 0.5)" />
+    </svg>
+  ),
   evidence: (
     <svg width="18" height="18" viewBox="0 0 18 18">
       <rect x="2" y="1" width="12" height="16" rx="1" fill={ENTITY_COLORS.evidence} opacity="0.9" />
@@ -40,7 +58,7 @@ const LegendPanel: React.FC<Props> = ({ nodes, activeFilters, onToggleFilter, on
     return acc;
   }, {});
 
-  const types: EntityType[] = ['case', 'person', 'caseEntity', 'evidence'];
+  const types: EntityType[] = ['case', 'person', 'caseEntity', 'firm', 'vehicle', 'location', 'evidence'];
 
   return (
     <div className={`legend-panel ${shifted ? 'legend-shifted' : ''}`} role="complementary" aria-label="Entity type legend">
