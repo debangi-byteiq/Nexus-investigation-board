@@ -8,6 +8,8 @@ export const ENTITY_COLORS: Record<EntityType, string> = {
   vehicle:    '#b888ff',
   location:   '#3dd1c3',
   evidence:   '#3ed98a',
+  incident:   '#ff7aa8',
+  arrest:     '#7cc7ff',
 };
 
 export const ENTITY_LABELS: Record<EntityType, string> = {
@@ -18,6 +20,8 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
   vehicle:    'Vehicle',
   location:   'Location',
   evidence:   'Evidence',
+  incident:   'Incident',
+  arrest:     'Arrest',
 };
 
 export const ENTITY_ICONS: Record<EntityType, string> = {
@@ -28,6 +32,8 @@ export const ENTITY_ICONS: Record<EntityType, string> = {
   vehicle:    '🚗',
   location:   '📍',
   evidence:   '📎',
+  incident:   '⚠️',
+  arrest:     '⛓️',
 };
 
 export const ENTITY_RADII: Record<EntityType, number> = {
@@ -38,6 +44,8 @@ export const ENTITY_RADII: Record<EntityType, number> = {
   vehicle:    20,
   location:   20,
   evidence:   20,
+  incident:   22,
+  arrest:     22,
 };
 
 export const SIDEBAR_WIDTH = 400;

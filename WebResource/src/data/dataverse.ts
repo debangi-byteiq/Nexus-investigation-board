@@ -6,6 +6,8 @@ const TABLE = {
   case: ['cr1da_cas1', 'cr1da_case1'],
   caseEntity: ['cr1da_caseentity1'],
   evidence: ['cr1da_evidence'],
+  incident: ['cr1da_incident', 'cr1da_incident1'],
+  arrest: ['cr1da_arrest'],
   firm: ['cr1da_firm'],
   location: ['cr1da_location'],
   officer: ['cr1da_officer'],
@@ -19,10 +21,11 @@ const COL = {
     id: ['cr1da_case1id'],
     name: 'cr1da_casename',
     openDate: 'cr1da_opendate',
+    closeDate: 'cr1da_closedate',
     priority: 'cr1da_priority',
     status: 'cr1da_status',
     summary: 'cr1da_summary',
-    officerLookup: [] as const,
+    officerLookup: ['_cr1da_officerid_value'],
     locationLookup: [] as const,
   },
   caseEntity: {
@@ -31,6 +34,7 @@ const COL = {
     entityType: 'cr1da_entitytype',
     role: 'cr1da_role',
     involvementLevel: 'cr1da_involvementlevel',
+    addedDate: 'cr1da_addeddate',
     notes: 'cr1da_notes',
     caseLookup: ['_cr1da_caseid_value', '_cr1da_case1id_value'],
     personLookup: ['_cr1da_personid_value'],
@@ -46,9 +50,32 @@ const COL = {
     officerLookup: ['_cr1da_officerid_value'],
     incidentLookup: ['_cr1da_incidentid_value'],
   },
+  incident: {
+    id: ['cr1da_incidentid', 'cr1da_incident1id'],
+    name: 'cr1da_incidentname',
+    crimeType: 'cr1da_crimetype',
+    description: 'cr1da_description',
+    severity: 'cr1da_severity',
+    caseLookup: ['_cr1da_caseid_value', '_cr1da_case1id_value'],
+    locationLookup: ['_cr1da_locationid_value'],
+    officerLookup: ['_cr1da_officerid_value'],
+  },
+  arrest: {
+    id: ['cr1da_arrestid'],
+    name: 'cr1da_arrestname',
+    bailAmount: 'cr1da_bailamount',
+    bailStatus: 'cr1da_bailstatus',
+    description: 'cr1da_description',
+    caseLookup: ['_cr1da_caseid_value', '_cr1da_case1id_value'],
+    incidentLookup: ['_cr1da_incidentid_value'],
+    officerLookup: ['_cr1da_officerid_value'],
+    personLookup: ['_cr1da_personid_value'],
+  },
   person: {
     id: ['cr1da_person1id'],
     name: 'cr1da_personname',
+    nricFin: 'cr1da_nricfin',
+    nationality: 'cr1da_nartionality',
     alias: 'cr1da_alias',
     dob: 'cr1da_dob',
     occupation: 'cr1da_occupation',
@@ -58,6 +85,7 @@ const COL = {
   firm: {
     id: ['cr1da_firmid'],
     name: 'cr1da_firmname',
+    acraStatus: 'cr1da_acrastatus',
     contact: 'cr1da_contact',
     ssic: 'cr1da_ssiccode',
   },
@@ -67,7 +95,10 @@ const COL = {
     plate: 'cr1da_licenseplate',
     make: 'cr1da_make',
     model: 'cr1da_model',
+    colour: 'cr1da_colour',
     year: 'cr1da_year',
+    vin: 'cr1da_vin',
+    status: 'cr1da_status',
   },
   location: {
     id: ['cr1da_locationid'],
@@ -82,6 +113,9 @@ const COL = {
     badge: 'cr1da_badgenumber',
     rank: 'cr1da_rank',
     department: 'cr1da_department',
+    division: 'cr1da_division',
+    contact: 'cr1da_contact',
+    status: 'cr1da_status',
   },
 } as const;
 
@@ -98,6 +132,20 @@ function getFirstStringValue(record: any, keys: readonly string[]): string | nul
     }
   }
   return null;
+}
+
+function getChoiceDisplayValue(record: any, key: string): string {
+  const formatted = record?.[`${key}@OData.Community.Display.V1.FormattedValue`];
+  if (typeof formatted === 'string' && formatted.trim().length > 0) {
+    return formatted;
+  }
+
+  const raw = record?.[key];
+  if (raw === null || raw === undefined || raw === '') {
+    return '—';
+  }
+
+  return String(raw);
 }
 
 function customColumns(cols: readonly string[]): string[] {
@@ -169,6 +217,39 @@ async function retrieveMultipleByCaseLookup(
   throw lastError;
 }
 
+async function retrieveMultipleByCaseLookupWithSelectFallback(
+  webAPI: DataverseWebAPI,
+  entityCandidates: readonly string[],
+  selectSets: readonly (readonly string[])[],
+  caseLookupKeys: readonly string[],
+  caseId: string
+): Promise<{ entity: string; entities: any[] }> {
+  let lastError: unknown;
+
+  for (const entity of entityCandidates) {
+    for (const lookupKey of caseLookupKeys) {
+      for (const selectCols of selectSets) {
+        const narrowedSelect = narrowSelectForKey(selectCols, caseLookupKeys, lookupKey);
+        const selected = customColumns(narrowedSelect);
+        if (selected.length === 0) continue;
+
+        const options =
+          `?$select=${selected.join(',')}` +
+          `&$filter=${lookupKey} eq '${escapeODataValue(caseId)}'`;
+
+        try {
+          const result = await webAPI.retrieveMultipleRecords(entity, options);
+          return { entity, entities: result?.entities ?? [] };
+        } catch (err) {
+          lastError = err;
+        }
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 async function retrieveMultipleByIds(
   webAPI: DataverseWebAPI,
   entityCandidates: readonly string[],
@@ -217,6 +298,7 @@ export async function fetchGraphData(
   const caseCoreCols = [
     COL.case.name,
     COL.case.openDate,
+    COL.case.closeDate,
     COL.case.priority,
     COL.case.status,
     COL.case.summary,
@@ -236,7 +318,7 @@ export async function fetchGraphData(
     ]
   );
 
-  const [caseEntitiesResult, evidenceResult] = await Promise.all([
+  const [caseEntitiesResult, evidenceResult, incidentsResult, arrestsResult] = await Promise.all([
     retrieveMultipleByCaseLookup(
       webAPI,
       TABLE.caseEntity,
@@ -246,6 +328,7 @@ export async function fetchGraphData(
         COL.caseEntity.entityType,
         COL.caseEntity.role,
         COL.caseEntity.involvementLevel,
+        COL.caseEntity.addedDate,
         COL.caseEntity.notes,
         ...COL.caseEntity.caseLookup,
         ...COL.caseEntity.personLookup,
@@ -270,10 +353,100 @@ export async function fetchGraphData(
       COL.evidence.caseLookup,
       caseId
     ),
+    retrieveMultipleByCaseLookupWithSelectFallback(
+      webAPI,
+      TABLE.incident,
+      [
+        [
+          COL.incident.id[0],
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+          ...COL.incident.locationLookup,
+          ...COL.incident.officerLookup,
+        ],
+        [
+          COL.incident.id[0],
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+          ...COL.incident.locationLookup,
+        ],
+        [
+          COL.incident.id[0],
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+        ],
+        [
+          COL.incident.id[1],
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+          ...COL.incident.locationLookup,
+          ...COL.incident.officerLookup,
+        ],
+        [
+          COL.incident.id[1],
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+          ...COL.incident.locationLookup,
+        ],
+        [
+          COL.incident.id[1],
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+        ],
+        [
+          COL.incident.name,
+          COL.incident.crimeType,
+          COL.incident.description,
+          COL.incident.severity,
+          ...COL.incident.caseLookup,
+          ...COL.incident.locationLookup,
+          ...COL.incident.officerLookup,
+        ],
+      ],
+      COL.incident.caseLookup,
+      caseId
+    ).catch(() => ({ entity: TABLE.incident[0], entities: [] })),
+    retrieveMultipleByCaseLookup(
+      webAPI,
+      TABLE.arrest,
+      [
+        ...COL.arrest.id,
+        COL.arrest.name,
+        COL.arrest.bailAmount,
+        COL.arrest.bailStatus,
+        COL.arrest.description,
+        ...COL.arrest.caseLookup,
+        ...COL.arrest.incidentLookup,
+        ...COL.arrest.officerLookup,
+        ...COL.arrest.personLookup,
+      ],
+      COL.arrest.caseLookup,
+      caseId
+    ).catch(() => ({ entity: TABLE.arrest[0], entities: [] })),
   ]);
 
   const caseEntities = caseEntitiesResult.entities;
   const evidence = evidenceResult.entities;
+  const incidents = incidentsResult.entities;
+  const arrests = arrestsResult.entities;
 
   const personIds: string[] = [];
   const firmIds: string[] = [];
@@ -289,41 +462,85 @@ export async function fetchGraphData(
     if (vehicleId) vehicleIds.push(vehicleId);
   });
 
+  arrests.forEach((ar: any) => {
+    const personId = getFirstStringValue(ar, COL.arrest.personLookup);
+    if (personId) personIds.push(personId);
+  });
+
   const caseOfficerIds = [getFirstStringValue(caseResult.record, COL.case.officerLookup)].filter(Boolean) as string[];
   const evidenceOfficerIds = evidence
     .map((ev: any) => getFirstStringValue(ev, COL.evidence.officerLookup))
     .filter(Boolean) as string[];
-  const officerIds = [...new Set([...caseOfficerIds, ...evidenceOfficerIds])];
+  const incidentOfficerIds = incidents
+    .map((inc: any) => getFirstStringValue(inc, COL.incident.officerLookup))
+    .filter(Boolean) as string[];
+  const arrestOfficerIds = arrests
+    .map((ar: any) => getFirstStringValue(ar, COL.arrest.officerLookup))
+    .filter(Boolean) as string[];
+  const officerIds = [...new Set([...caseOfficerIds, ...evidenceOfficerIds, ...incidentOfficerIds, ...arrestOfficerIds])];
 
-  const locationIds = [getFirstStringValue(caseResult.record, COL.case.locationLookup)].filter(Boolean) as string[];
+  const caseLocationIds = [getFirstStringValue(caseResult.record, COL.case.locationLookup)].filter(Boolean) as string[];
+  const incidentLocationIds = incidents
+    .map((inc: any) => getFirstStringValue(inc, COL.incident.locationLookup))
+    .filter(Boolean) as string[];
+  const locationIds = [...new Set([...caseLocationIds, ...incidentLocationIds])];
 
   const [personsResult, firmsResult, vehiclesResult, officersResult, locationsResult] = await Promise.all([
     retrieveMultipleByIds(
       webAPI,
       TABLE.person,
       COL.person.id,
-      [...COL.person.id, COL.person.name, COL.person.alias, COL.person.dob, COL.person.occupation, COL.person.contact, COL.person.riskLevel],
+      [
+        ...COL.person.id,
+        COL.person.name,
+        COL.person.nricFin,
+        COL.person.nationality,
+        COL.person.alias,
+        COL.person.dob,
+        COL.person.occupation,
+        COL.person.contact,
+        COL.person.riskLevel,
+      ],
       personIds
     ).catch(() => ({ entity: TABLE.person[0], entities: [] })),
     retrieveMultipleByIds(
       webAPI,
       TABLE.firm,
       COL.firm.id,
-      [...COL.firm.id, COL.firm.name, COL.firm.contact, COL.firm.ssic],
+      [...COL.firm.id, COL.firm.name, COL.firm.acraStatus, COL.firm.contact, COL.firm.ssic],
       firmIds
     ).catch(() => ({ entity: TABLE.firm[0], entities: [] })),
     retrieveMultipleByIds(
       webAPI,
       TABLE.vehicle,
       COL.vehicle.id,
-      [...COL.vehicle.id, COL.vehicle.name, COL.vehicle.plate, COL.vehicle.make, COL.vehicle.model, COL.vehicle.year],
+      [
+        ...COL.vehicle.id,
+        COL.vehicle.name,
+        COL.vehicle.plate,
+        COL.vehicle.make,
+        COL.vehicle.model,
+        COL.vehicle.colour,
+        COL.vehicle.year,
+        COL.vehicle.vin,
+        COL.vehicle.status,
+      ],
       vehicleIds
     ).catch(() => ({ entity: TABLE.vehicle[0], entities: [] })),
     retrieveMultipleByIds(
       webAPI,
       TABLE.officer,
       COL.officer.id,
-      [...COL.officer.id, COL.officer.name, COL.officer.badge, COL.officer.rank, COL.officer.department],
+      [
+        ...COL.officer.id,
+        COL.officer.name,
+        COL.officer.badge,
+        COL.officer.rank,
+        COL.officer.department,
+        COL.officer.division,
+        COL.officer.contact,
+        COL.officer.status,
+      ],
       officerIds
     ).catch(() => ({ entity: TABLE.officer[0], entities: [] })),
     retrieveMultipleByIds(
@@ -341,6 +558,8 @@ export async function fetchGraphData(
     caseEntities,
     personsResult.entities,
     evidence,
+    incidents,
+    arrests,
     firmsResult.entities,
     vehiclesResult.entities,
     officersResult.entities,
@@ -365,6 +584,8 @@ function mapToGraphData(
   caseEntities: any[],
   persons: any[],
   evidenceList: any[],
+  incidents: any[],
+  arrests: any[],
   firms: any[],
   vehicles: any[],
   officers: any[],
@@ -391,6 +612,8 @@ function mapToGraphData(
   const vehicleNodeByDvId = new Map<string, string>();
   const officerNodeByDvId = new Map<string, string>();
   const locationNodeByDvId = new Map<string, string>();
+  const incidentNodeByDvId = new Map<string, string>();
+  const arrestNodeByDvId = new Map<string, string>();
 
   const caseIdFromRecord = getFirstStringValue(caseRecord, COL.case.id) ?? caseId;
 
@@ -407,6 +630,11 @@ function mapToGraphData(
       name: caseRecord[COL.case.name] ?? '',
       caseNumber: caseRecord[COL.case.name] ?? '',
       openDate: formatDate(caseRecord[COL.case.openDate] ?? null),
+      closeDate: formatDate(caseRecord[COL.case.closeDate] ?? null),
+      priority: getChoiceDisplayValue(caseRecord, COL.case.priority),
+      status: getChoiceDisplayValue(caseRecord, COL.case.status),
+      summary: String(caseRecord[COL.case.summary] ?? '—'),
+      officerId: getFirstStringValue(caseRecord, COL.case.officerLookup),
       isActive: true,
     },
   });
@@ -419,15 +647,20 @@ function mapToGraphData(
       id: nodeId,
       type: 'person',
       label: p[COL.person.name] ?? 'Person',
-      sublabel: p[COL.person.riskLevel] ?? 'Person',
+      sublabel: getChoiceDisplayValue(p, COL.person.riskLevel),
       radius: ENTITY_RADII.person,
       details: {
         kind: 'person',
         personId: dvId,
         dvId,
         name: p[COL.person.name] ?? '',
+        alias: String(p[COL.person.alias] ?? '—'),
+        nricFin: String(p[COL.person.nricFin] ?? '—'),
+        nationality: String(p[COL.person.nationality] ?? '—'),
         dateOfBirth: formatDate(p[COL.person.dob]),
         phoneNumber: p[COL.person.contact] ?? '—',
+        occupation: String(p[COL.person.occupation] ?? '—'),
+        riskLevel: getChoiceDisplayValue(p, COL.person.riskLevel),
         isSuspect: false,
       },
     });
@@ -444,13 +677,13 @@ function mapToGraphData(
       sublabel: 'Firm',
       radius: ENTITY_RADII.firm,
       details: {
-        kind: 'caseEntity',
-        caseEntityId: dvId,
+        kind: 'firm',
+        firmId: dvId,
         dvId,
-        entityName: f[COL.firm.name] ?? 'Firm',
-        entityType: 'Firm',
-        linkedCaseId: caseId,
-        linkedPersonId: null,
+        name: String(f[COL.firm.name] ?? 'Firm'),
+        acraStatus: getChoiceDisplayValue(f, COL.firm.acraStatus),
+        contact: String(f[COL.firm.contact] ?? '—'),
+        ssicCode: String(f[COL.firm.ssic] ?? '—'),
       },
     });
   });
@@ -466,13 +699,17 @@ function mapToGraphData(
       sublabel: 'Vehicle',
       radius: ENTITY_RADII.vehicle,
       details: {
-        kind: 'caseEntity',
-        caseEntityId: dvId,
+        kind: 'vehicle',
+        vehicleId: dvId,
         dvId,
-        entityName: v[COL.vehicle.name] ?? 'Vehicle',
-        entityType: 'Vehicle',
-        linkedCaseId: caseId,
-        linkedPersonId: null,
+        name: String(v[COL.vehicle.name] ?? 'Vehicle'),
+        plate: String(v[COL.vehicle.plate] ?? '—'),
+        make: String(v[COL.vehicle.make] ?? '—'),
+        model: String(v[COL.vehicle.model] ?? '—'),
+        colour: String(v[COL.vehicle.colour] ?? '—'),
+        year: String(v[COL.vehicle.year] ?? '—'),
+        vin: String(v[COL.vehicle.vin] ?? '—'),
+        status: getChoiceDisplayValue(v, COL.vehicle.status),
       },
     });
   });
@@ -485,16 +722,19 @@ function mapToGraphData(
       id: nodeId,
       type: 'caseEntity',
       label: o[COL.officer.name] ?? 'Officer',
-      sublabel: 'Officer',
+      sublabel: getChoiceDisplayValue(o, COL.officer.status),
       radius: ENTITY_RADII.caseEntity,
       details: {
-        kind: 'caseEntity',
-        caseEntityId: dvId,
+        kind: 'officer',
+        officerId: dvId,
         dvId,
-        entityName: o[COL.officer.name] ?? 'Officer',
-        entityType: 'Officer',
-        linkedCaseId: caseId,
-        linkedPersonId: null,
+        name: String(o[COL.officer.name] ?? 'Officer'),
+        badgeNumber: String(o[COL.officer.badge] ?? '—'),
+        rank: String(o[COL.officer.rank] ?? '—'),
+        department: String(o[COL.officer.department] ?? '—'),
+        division: String(o[COL.officer.division] ?? '—'),
+        contact: String(o[COL.officer.contact] ?? '—'),
+        status: getChoiceDisplayValue(o, COL.officer.status),
       },
     });
   });
@@ -510,13 +750,13 @@ function mapToGraphData(
       sublabel: 'Location',
       radius: ENTITY_RADII.location,
       details: {
-        kind: 'caseEntity',
-        caseEntityId: dvId,
+        kind: 'location',
+        locationId: dvId,
         dvId,
-        entityName: l[COL.location.name] ?? 'Location',
-        entityType: 'Location',
-        linkedCaseId: caseId,
-        linkedPersonId: null,
+        name: String(l[COL.location.name] ?? 'Location'),
+        locationType: String(l[COL.location.type] ?? '—'),
+        streetAddress: String(l[COL.location.street] ?? '—'),
+        postalCode: String(l[COL.location.postal] ?? '—'),
       },
     });
   });
@@ -539,6 +779,10 @@ function mapToGraphData(
         dvId,
         entityName: ce[COL.caseEntity.name] ?? 'Case Entity',
         entityType: ce[COL.caseEntity.entityType] ?? 'Entity',
+        role: getChoiceDisplayValue(ce, COL.caseEntity.role),
+        involvementLevel: getChoiceDisplayValue(ce, COL.caseEntity.involvementLevel),
+        addedDate: formatDate(ce[COL.caseEntity.addedDate] ?? null),
+        notes: String(ce[COL.caseEntity.notes] ?? '—'),
         linkedCaseId: caseId,
         linkedPersonId: personDvId,
       },
@@ -547,7 +791,7 @@ function mapToGraphData(
     pushLink(caseId, nodeId, 'entity');
 
     if (personDvId && personNodeByDvId.has(personDvId)) {
-      pushLink(nodeId, personNodeByDvId.get(personDvId)!, ce[COL.caseEntity.role] ?? 'linked');
+      pushLink(nodeId, personNodeByDvId.get(personDvId)!, getChoiceDisplayValue(ce, COL.caseEntity.role));
     }
 
     const firmDvId = getFirstStringValue(ce, COL.caseEntity.firmLookup);
@@ -571,6 +815,83 @@ function mapToGraphData(
     pushLink(caseId, locationNodeByDvId.get(caseLocationId)!, 'location');
   }
 
+  incidents.forEach((inc, index) => {
+    const dvId = getFirstStringValue(inc, COL.incident.id) ?? `incident-${index + 1}`;
+    const nodeId = `incident:${dvId}`;
+    incidentNodeByDvId.set(dvId, nodeId);
+    const incidentLocationId = getFirstStringValue(inc, COL.incident.locationLookup);
+    const incidentOfficerId = getFirstStringValue(inc, COL.incident.officerLookup);
+
+    pushNode({
+      id: nodeId,
+      type: 'incident',
+      label: String(inc[COL.incident.name] ?? 'Incident'),
+      sublabel: getChoiceDisplayValue(inc, COL.incident.severity),
+      radius: ENTITY_RADII.incident,
+      details: {
+        kind: 'incident',
+        incidentId: dvId,
+        dvId,
+        name: String(inc[COL.incident.name] ?? 'Incident'),
+        crimeType: String(inc[COL.incident.crimeType] ?? '—'),
+        description: String(inc[COL.incident.description] ?? '—'),
+        severity: getChoiceDisplayValue(inc, COL.incident.severity),
+        linkedCaseId: caseId,
+        locationId: incidentLocationId,
+        officerId: incidentOfficerId,
+      },
+    });
+
+    pushLink(caseId, nodeId, 'incident');
+    if (incidentLocationId && locationNodeByDvId.has(incidentLocationId)) {
+      pushLink(nodeId, locationNodeByDvId.get(incidentLocationId)!, 'location');
+    }
+    if (incidentOfficerId && officerNodeByDvId.has(incidentOfficerId)) {
+      pushLink(nodeId, officerNodeByDvId.get(incidentOfficerId)!, 'officer');
+    }
+  });
+
+  arrests.forEach((ar, index) => {
+    const dvId = getFirstStringValue(ar, COL.arrest.id) ?? `arrest-${index + 1}`;
+    const nodeId = `arrest:${dvId}`;
+    arrestNodeByDvId.set(dvId, nodeId);
+    const arrestPersonId = getFirstStringValue(ar, COL.arrest.personLookup);
+    const arrestOfficerId = getFirstStringValue(ar, COL.arrest.officerLookup);
+    const arrestIncidentId = getFirstStringValue(ar, COL.arrest.incidentLookup);
+
+    pushNode({
+      id: nodeId,
+      type: 'arrest',
+      label: String(ar[COL.arrest.name] ?? 'Arrest'),
+      sublabel: getChoiceDisplayValue(ar, COL.arrest.bailStatus),
+      radius: ENTITY_RADII.arrest,
+      details: {
+        kind: 'arrest',
+        arrestId: dvId,
+        dvId,
+        name: String(ar[COL.arrest.name] ?? 'Arrest'),
+        bailAmount: String(ar[COL.arrest.bailAmount] ?? '—'),
+        bailStatus: getChoiceDisplayValue(ar, COL.arrest.bailStatus),
+        description: String(ar[COL.arrest.description] ?? '—'),
+        linkedCaseId: caseId,
+        incidentId: arrestIncidentId,
+        officerId: arrestOfficerId,
+        personId: arrestPersonId,
+      },
+    });
+
+    pushLink(caseId, nodeId, 'arrest');
+    if (arrestPersonId && personNodeByDvId.has(arrestPersonId)) {
+      pushLink(nodeId, personNodeByDvId.get(arrestPersonId)!, 'person');
+    }
+    if (arrestOfficerId && officerNodeByDvId.has(arrestOfficerId)) {
+      pushLink(nodeId, officerNodeByDvId.get(arrestOfficerId)!, 'officer');
+    }
+    if (arrestIncidentId && incidentNodeByDvId.has(arrestIncidentId)) {
+      pushLink(nodeId, incidentNodeByDvId.get(arrestIncidentId)!, 'incident');
+    }
+  });
+
   evidenceList.forEach((ev, index) => {
     const dvId = getFirstStringValue(ev, COL.evidence.id) ?? `evidence-${index + 1}`;
     const nodeId = `evidence:${dvId}`;
@@ -578,14 +899,18 @@ function mapToGraphData(
       id: nodeId,
       type: 'evidence',
       label: ev[COL.evidence.name] ?? 'Evidence',
-      sublabel: ev[COL.evidence.category] ?? '',
+      sublabel: getChoiceDisplayValue(ev, COL.evidence.category),
       radius: ENTITY_RADII.evidence,
       details: {
         kind: 'evidence',
         evidenceId: dvId,
         dvId,
         evidenceName: ev[COL.evidence.name] ?? '',
-        evidenceType: ev[COL.evidence.category] ?? '',
+        evidenceType: getChoiceDisplayValue(ev, COL.evidence.category),
+        description: String(ev[COL.evidence.description] ?? '—'),
+        evidenceFile: '—',
+        officerId: getFirstStringValue(ev, COL.evidence.officerLookup),
+        incidentId: getFirstStringValue(ev, COL.evidence.incidentLookup),
         collectedDate: '—',
         linkedCaseId: caseId,
         linkedCaseEntityId: null,
@@ -597,6 +922,11 @@ function mapToGraphData(
     const officerDvId = getFirstStringValue(ev, COL.evidence.officerLookup);
     if (officerDvId && officerNodeByDvId.has(officerDvId)) {
       pushLink(nodeId, officerNodeByDvId.get(officerDvId)!, 'handled by');
+    }
+
+    const incidentDvId = getFirstStringValue(ev, COL.evidence.incidentLookup);
+    if (incidentDvId && incidentNodeByDvId.has(incidentDvId)) {
+      pushLink(nodeId, incidentNodeByDvId.get(incidentDvId)!, 'incident');
     }
   });
 

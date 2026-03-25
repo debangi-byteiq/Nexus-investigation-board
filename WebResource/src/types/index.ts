@@ -1,6 +1,6 @@
 // ─── Entity Types (aligned with Dataverse tables) ─────────────────────────────
 
-export type EntityType = 'case' | 'person' | 'caseEntity' | 'firm' | 'vehicle' | 'location' | 'evidence';
+export type EntityType = 'case' | 'person' | 'caseEntity' | 'firm' | 'vehicle' | 'location' | 'evidence' | 'incident' | 'arrest';
 
 export interface TimelineEntry {
   event: string;
@@ -36,6 +36,11 @@ export interface CaseDetails {
   name: string;
   caseNumber: string;
   openDate: string;
+  closeDate?: string;
+  priority?: string;
+  status?: string;
+  summary?: string;
+  officerId?: string | null;
   isActive: boolean;
 }
 
@@ -44,8 +49,13 @@ export interface PersonDetails {
   personId: string;
   dvId: string;
   name: string;
+  alias?: string;
+  nricFin?: string;
+  nationality?: string;
   dateOfBirth: string;
   phoneNumber: string;
+  occupation?: string;
+  riskLevel?: string;
   isSuspect: boolean;
 }
 
@@ -55,8 +65,59 @@ export interface CaseEntityDetails {
   dvId: string;
   entityName: string;
   entityType: string;
+  role?: string;
+  involvementLevel?: string;
+  addedDate?: string;
+  notes?: string;
   linkedCaseId: string;
   linkedPersonId: string | null;
+}
+
+export interface FirmDetails {
+  kind: 'firm';
+  firmId: string;
+  dvId: string;
+  name: string;
+  acraStatus: string;
+  contact: string;
+  ssicCode: string;
+}
+
+export interface VehicleDetails {
+  kind: 'vehicle';
+  vehicleId: string;
+  dvId: string;
+  name: string;
+  plate: string;
+  make: string;
+  model: string;
+  colour: string;
+  year: string;
+  vin: string;
+  status: string;
+}
+
+export interface LocationDetails {
+  kind: 'location';
+  locationId: string;
+  dvId: string;
+  name: string;
+  locationType: string;
+  streetAddress: string;
+  postalCode: string;
+}
+
+export interface OfficerDetails {
+  kind: 'officer';
+  officerId: string;
+  dvId: string;
+  name: string;
+  badgeNumber: string;
+  rank: string;
+  department: string;
+  division: string;
+  contact: string;
+  status: string;
 }
 
 export interface EvidenceDetails {
@@ -65,16 +126,53 @@ export interface EvidenceDetails {
   dvId: string;
   evidenceName: string;
   evidenceType: string;
+  description?: string;
+  evidenceFile?: string;
+  officerId?: string | null;
+  incidentId?: string | null;
   collectedDate: string;
   linkedCaseId: string;
   linkedCaseEntityId: string | null;
+}
+
+export interface IncidentDetails {
+  kind: 'incident';
+  incidentId: string;
+  dvId: string;
+  name: string;
+  crimeType: string;
+  description: string;
+  severity: string;
+  linkedCaseId: string;
+  locationId: string | null;
+  officerId: string | null;
+}
+
+export interface ArrestDetails {
+  kind: 'arrest';
+  arrestId: string;
+  dvId: string;
+  name: string;
+  bailAmount: string;
+  bailStatus: string;
+  description: string;
+  linkedCaseId: string;
+  incidentId: string | null;
+  officerId: string | null;
+  personId: string | null;
 }
 
 export type EntityDetails =
   | CaseDetails
   | PersonDetails
   | CaseEntityDetails
-  | EvidenceDetails;
+  | FirmDetails
+  | VehicleDetails
+  | LocationDetails
+  | OfficerDetails
+  | EvidenceDetails
+  | IncidentDetails
+  | ArrestDetails;
 
 // ─── Graph Node & Link ────────────────────────────────────────────────────────
 

@@ -50,6 +50,16 @@ const SHAPE_SVG: Record<EntityType, React.ReactNode> = {
       <polygon points="14,1 18,5 14,5" fill={ENTITY_COLORS.evidence} opacity="0.6" />
     </svg>
   ),
+  incident: (
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <polygon points="9,1 17,9 9,17 1,9" fill={ENTITY_COLORS.incident} opacity="0.9" />
+    </svg>
+  ),
+  arrest: (
+    <svg width="18" height="18" viewBox="0 0 18 18">
+      <polygon points="6,1 12,1 17,6 17,12 12,17 6,17 1,12 1,6" fill={ENTITY_COLORS.arrest} opacity="0.9" />
+    </svg>
+  ),
 };
 
 const LegendPanel: React.FC<Props> = ({ nodes, activeFilters, onToggleFilter, onClearFilters, shifted }) => {
@@ -58,7 +68,7 @@ const LegendPanel: React.FC<Props> = ({ nodes, activeFilters, onToggleFilter, on
     return acc;
   }, {});
 
-  const types: EntityType[] = ['case', 'person', 'caseEntity', 'firm', 'vehicle', 'location', 'evidence'];
+  const types: EntityType[] = ['case', 'person', 'caseEntity', 'firm', 'vehicle', 'location', 'evidence', 'incident', 'arrest'];
 
   return (
     <div className={`legend-panel ${shifted ? 'legend-shifted' : ''}`} role="complementary" aria-label="Entity type legend">

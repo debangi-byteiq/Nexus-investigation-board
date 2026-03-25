@@ -59,12 +59,6 @@ export const App: React.FC<AppProps> = ({
     console.log(`Navigate to case ${caseId} in Dataverse`);
   }, []);
 
-  // ── Open in Dataverse
-  const handleOpenInDataverse = useCallback(() => {
-    const id = selectedNode?.id ?? 'record';
-    console.log(`Opening ${id} in Dataverse`);
-  }, [selectedNode]);
-
   // ── Filter toggle
   const handleToggleFilter = useCallback((type: EntityType) => {
     setActiveFilters(prev => {
@@ -119,7 +113,6 @@ export const App: React.FC<AppProps> = ({
           open={sidebarOpen}
           onClose={handleSidebarClose}
           onRelatedCaseClick={handleRelatedCaseClick}
-          onOpenInDataverse={handleOpenInDataverse}
         />
       </main>
     </div>

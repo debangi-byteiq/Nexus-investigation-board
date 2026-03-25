@@ -8,10 +8,9 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onRelatedCaseClick: (id: string) => void;
-  onOpenInDataverse: () => void;
 }
 
-const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClick, onOpenInDataverse }) => {
+const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClick }) => {
   const color = node ? ENTITY_COLORS[node.type] : 'var(--text3)';
 
   // Extract the record-level ID from details
@@ -22,7 +21,14 @@ const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClic
       case 'case':       return d.caseId;
       case 'person':     return d.personId;
       case 'caseEntity': return d.caseEntityId;
+      case 'firm':       return d.firmId;
+      case 'vehicle':    return d.vehicleId;
+      case 'location':   return d.locationId;
+      case 'officer':    return d.officerId;
       case 'evidence':   return d.evidenceId;
+      case 'incident':   return d.incidentId;
+      case 'arrest':     return d.arrestId;
+      default:           return '';
     }
   };
 
@@ -90,19 +96,6 @@ const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClic
             </button>
           </div>
 
-          {/* Open in Dataverse */}
-          <button
-            className="sidebar-dv-btn"
-            onClick={onOpenInDataverse}
-            aria-label="Open this record in Dataverse"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            Open Record in Dataverse
-          </button>
         </div>
 
         {/* Body */}

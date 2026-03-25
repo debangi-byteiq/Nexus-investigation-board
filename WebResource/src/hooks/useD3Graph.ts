@@ -212,6 +212,20 @@ export function useD3Graph(
         sel.append('polygon')
           .attr('points', `${r - 9},${-(r * 0.8)} ${r},${-(r * 0.8) + 9} ${r},${-(r * 0.8)}`)
           .attr('fill', c).attr('fill-opacity', 0.5);
+      } else if (d.type === 'incident') {
+        sel.append('polygon')
+          .attr('class', 'node-shape')
+          .attr('points', `0,${-r} ${r},0 0,${r} ${-r},0`)
+          .attr('fill', c).attr('fill-opacity', 0.2)
+          .attr('stroke', c).attr('stroke-width', 1.9)
+          .attr('filter', `url(#glow-${d.type})`);
+      } else if (d.type === 'arrest') {
+        sel.append('polygon')
+          .attr('class', 'node-shape')
+          .attr('points', `${-0.6 * r},${-r} ${0.6 * r},${-r} ${r},${-0.6 * r} ${r},${0.6 * r} ${0.6 * r},${r} ${-0.6 * r},${r} ${-r},${0.6 * r} ${-r},${-0.6 * r}`)
+          .attr('fill', c).attr('fill-opacity', 0.2)
+          .attr('stroke', c).attr('stroke-width', 1.9)
+          .attr('filter', `url(#glow-${d.type})`);
       }
     });
 
@@ -227,6 +241,8 @@ export function useD3Graph(
           if (d.type === 'firm') return 'scale(1.24)';
           if (d.type === 'vehicle') return 'scale(1.2)';
           if (d.type === 'location') return 'scale(1.22)';
+          if (d.type === 'incident') return 'scale(1.2)';
+          if (d.type === 'arrest') return 'scale(1.2)';
           return 'scale(1.3)';
         })
         .attr('fill', 'rgba(244,248,255,0.96)')
@@ -270,25 +286,43 @@ export function useD3Graph(
           .attr('fill', 'none')
           .attr('stroke-width', 1.55);
       } else if (d.type === 'caseEntity') {
-        // Link icon
-        icon.append('circle')
-          .attr('cx', -3.5)
-          .attr('cy', 0)
-          .attr('r', 2.35)
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.45);
-        icon.append('circle')
-          .attr('cx', 3.5)
-          .attr('cy', 0)
-          .attr('r', 2.35)
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.45);
-        icon.append('line')
-          .attr('x1', -1.2)
-          .attr('y1', 0)
-          .attr('x2', 1.2)
-          .attr('y2', 0)
-          .attr('stroke-width', 1.45);
+        if (d.details.kind === 'officer') {
+          // Officer badge icon (distinct from generic case entity)
+          icon.append('path')
+            .attr('d', 'M 0 -5.2 L 4.4 -2.8 L 4.4 2.4 L 0 5.6 L -4.4 2.4 L -4.4 -2.8 Z')
+            .attr('fill', 'rgba(244,248,255,0.14)')
+            .attr('stroke-width', 1.35);
+          icon.append('circle')
+            .attr('cx', 0)
+            .attr('cy', -0.4)
+            .attr('r', 1.45)
+            .attr('fill', 'none')
+            .attr('stroke-width', 1.2);
+          icon.append('path')
+            .attr('d', 'M -2.3 2.5 C -1.8 1.5, -0.9 1.1, 0 1.1 C 0.9 1.1, 1.8 1.5, 2.3 2.5')
+            .attr('fill', 'none')
+            .attr('stroke-width', 1.2);
+        } else {
+          // Generic link icon for case entity
+          icon.append('circle')
+            .attr('cx', -3.5)
+            .attr('cy', 0)
+            .attr('r', 2.35)
+            .attr('fill', 'none')
+            .attr('stroke-width', 1.45);
+          icon.append('circle')
+            .attr('cx', 3.5)
+            .attr('cy', 0)
+            .attr('r', 2.35)
+            .attr('fill', 'none')
+            .attr('stroke-width', 1.45);
+          icon.append('line')
+            .attr('x1', -1.2)
+            .attr('y1', 0)
+            .attr('x2', 1.2)
+            .attr('y2', 0)
+            .attr('stroke-width', 1.45);
+        }
       } else if (d.type === 'firm') {
         // Building icon
         icon.append('rect')
@@ -354,6 +388,44 @@ export function useD3Graph(
           .attr('y1', 1.2)
           .attr('x2', 2.3)
           .attr('y2', 1.2)
+          .attr('stroke-width', 1.3);
+      } else if (d.type === 'incident') {
+        // Warning/incident icon
+        icon.append('path')
+          .attr('d', 'M 0 -5.7 L 5.3 4.8 L -5.3 4.8 Z')
+          .attr('fill', 'rgba(244,248,255,0.14)')
+          .attr('stroke-width', 1.3);
+        icon.append('line')
+          .attr('x1', 0)
+          .attr('y1', -2.2)
+          .attr('x2', 0)
+          .attr('y2', 1.5)
+          .attr('stroke-width', 1.35);
+        icon.append('circle')
+          .attr('cx', 0)
+          .attr('cy', 3.3)
+          .attr('r', 0.8)
+          .attr('fill', 'rgba(244,248,255,0.96)')
+          .attr('stroke', 'none');
+      } else if (d.type === 'arrest') {
+        // Handcuff-inspired icon
+        icon.append('circle')
+          .attr('cx', -2.5)
+          .attr('cy', 0)
+          .attr('r', 2.2)
+          .attr('fill', 'none')
+          .attr('stroke-width', 1.3);
+        icon.append('circle')
+          .attr('cx', 2.5)
+          .attr('cy', 0)
+          .attr('r', 2.2)
+          .attr('fill', 'none')
+          .attr('stroke-width', 1.3);
+        icon.append('line')
+          .attr('x1', -0.7)
+          .attr('y1', 0)
+          .attr('x2', 0.7)
+          .attr('y2', 0)
           .attr('stroke-width', 1.3);
       }
     });
@@ -435,6 +507,7 @@ export function useD3Graph(
           if (tgt.type === 'caseEntity') return 110;
           if (tgt.type === 'firm' || tgt.type === 'vehicle' || tgt.type === 'location') return 130;
           if (tgt.type === 'evidence') return 170;
+          if (tgt.type === 'incident' || tgt.type === 'arrest') return 150;
           return 165;
         })
         .strength(0.45))
