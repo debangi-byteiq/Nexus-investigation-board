@@ -92,3 +92,29 @@ export interface D3Transform {
   y: number;
   k: number;
 }
+
+export interface CaseContext {
+  caseId: string;
+  caseName: string;
+  caseType: string;
+  status: string;
+  priority: string;
+  lead: string;
+}
+
+export type CaseStatus = 'Open' | 'Active' | 'Closed' | 'Cold';
+
+export interface RelatedCaseRef {
+  id: string;          
+  name: string;        
+  status: CaseStatus;  
+  matchReason: string; 
+}
+
+export type LoadingStep = 
+  | 'fetch-case' 
+  | 'fetch-contacts' 
+  | 'fetch-connections' 
+  | 'fetch-annotations' 
+  | 'fetch-related' 
+  | 'build-graph';

@@ -86,7 +86,7 @@ export function useD3Graph(
       .attr('patternUnits', 'userSpaceOnUse');
     pattern.append('circle')
       .attr('cx', 15).attr('cy', 15).attr('r', 0.8)
-      .attr('fill', 'rgba(255,255,255,0.06)');
+      .attr('fill', 'rgba(255, 255, 255, 0.26)');
   }, []);
 
   // ── Draw a single node's shape ─────────────────────────────────────────────
@@ -167,7 +167,7 @@ export function useD3Graph(
       .style('pointer-events', 'none')
       .text((d) => {
         const icons: Record<string, string> = {
-          case: '📁', person: '👤', caseEntity: '🔗', evidence: '📎',
+          case: '📁', person: '👤', caseEntity: '🔗', evidence: '🔍',
         };
         return icons[d.type] ?? '◉';
       });
@@ -178,7 +178,7 @@ export function useD3Graph(
       .attr('text-anchor', 'middle')
       .attr('y', (d) => d.radius + 16)
       .attr('fill', 'rgba(220,228,245,0.92)')
-      .attr('font-size', '10.5px')
+      .attr('font-size', '13.5px')
       .attr('font-weight', '600')
       .attr('font-family', 'Space Grotesk, sans-serif')
       .style('pointer-events', 'none')
@@ -189,10 +189,10 @@ export function useD3Graph(
       .attr('class', 'node-sublabel')
       .attr('text-anchor', 'middle')
       .attr('y', (d) => d.radius + 28)
-      .attr('fill', 'rgba(110,128,168,0.75)')
-      .attr('font-size', '9px')
+      .attr('fill', 'rgba(203, 205, 208, 0.75)')
+      .attr('font-size', '12px')
       .attr('font-family', 'JetBrains Mono, monospace')
-      .attr('letter-spacing', '0.04em')
+      .attr('letter-spacing', '0.05em')
       .style('pointer-events', 'none')
       .text((d) => d.sublabel);
   }, []);
@@ -274,8 +274,8 @@ export function useD3Graph(
       .attr('class', 'link-label')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'middle')
-      .attr('fill', 'rgba(110,128,168,0.7)')
-      .attr('font-size', '9px')
+      .attr('fill', 'rgba(222, 224, 228, 0.7)')
+      .attr('font-size', '10px')
       .attr('font-family', 'JetBrains Mono, monospace')
       .attr('letter-spacing', '0.04em')
       .style('pointer-events', 'none')

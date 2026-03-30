@@ -12,8 +12,8 @@
   --border2:rgba(255,255,255,0.10);
 
   --text:   #dce4f5;
-  --text2:  #6e80a8;
-  --text3:  #364260;
+  --text2:  #b1b6c4;
+  --text3:  #8e94a6;
 
   --c-case:    #ff5f5f;
   --c-contact: #ff9040;
@@ -104,7 +104,7 @@ input { font-family: var(--mono); }
   border: 1px solid var(--border2);
   backdrop-filter: blur(10px);
   padding: 6px 16px;
-  font-family: var(--mono); font-size: 9.5px;
+  font-family: var(--mono); font-size: 12px;
   color: var(--text3); letter-spacing: 0.05em;
   pointer-events: none; white-space: nowrap; z-index: 5;
 }

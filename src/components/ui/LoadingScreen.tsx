@@ -1,6 +1,14 @@
 import React from 'react';
 import type { LoadingStep } from '../../types';
-import { LOADING_STEPS } from '../../utils/constants';
+
+const LOADING_STEPS = [
+  { key: 'fetch-case', label: 'Fetching case details' },
+  { key: 'fetch-contacts', label: 'Fetching contacts' },
+  { key: 'fetch-connections', label: 'Fetching connections' },
+  { key: 'fetch-annotations', label: 'Fetching annotations' },
+  { key: 'fetch-related', label: 'Fetching related cases' },
+  { key: 'build-graph', label: 'Building graph' },
+] as const;
 
 interface Props {
   currentStep: LoadingStep;
