@@ -11,25 +11,31 @@ interface Props {
 }
 
 const SHAPE_SVG: Record<EntityType, React.ReactNode> = {
+  // Hexagon shape for Case - (Kept original points)
   case: (
     <svg width="18" height="18" viewBox="0 0 18 18">
       <polygon points="9,1 17,5 17,13 9,17 1,13 1,5" fill={ENTITY_COLORS.case} opacity="0.9" />
     </svg>
   ),
+  
+  // Person changed to Circle
   person: (
     <svg width="18" height="18" viewBox="0 0 18 18">
       <circle cx="9" cy="9" r="8" fill={ENTITY_COLORS.person} opacity="0.9" />
     </svg>
   ),
+  
+  // CaseEntity changed to Circle
   caseEntity: (
     <svg width="18" height="18" viewBox="0 0 18 18">
-      <rect x="1" y="5" width="16" height="8" rx="4" fill={ENTITY_COLORS.caseEntity} opacity="0.9" />
+      <circle cx="9" cy="9" r="8" fill={ENTITY_COLORS.caseEntity} opacity="0.9" />
     </svg>
   ),
+  
+  // Evidence changed to Circle
   evidence: (
     <svg width="18" height="18" viewBox="0 0 18 18">
-      <rect x="2" y="1" width="12" height="16" rx="1" fill={ENTITY_COLORS.evidence} opacity="0.9" />
-      <polygon points="14,1 18,5 14,5" fill={ENTITY_COLORS.evidence} opacity="0.6" />
+      <circle cx="9" cy="9" r="8" fill={ENTITY_COLORS.evidence} opacity="0.9" />
     </svg>
   ),
 };

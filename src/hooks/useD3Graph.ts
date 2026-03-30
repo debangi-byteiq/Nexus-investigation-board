@@ -137,21 +137,17 @@ export function useD3Graph(
           .attr('fill', 'none')
           .attr('stroke', c).attr('stroke-width', 0.5).attr('stroke-opacity', 0.3);
       } else if (d.type === 'caseEntity') {
-        sel.append('rect')
+        sel.append('circle')
           .attr('class', 'node-shape')
-          .attr('x', -r).attr('y', -(r * 0.6))
-          .attr('width', r * 2).attr('height', r * 1.2)
-          .attr('rx', r * 0.6)
+          .attr('r', r)
           .attr('fill', c).attr('fill-opacity', 0.12)
           .attr('stroke', c).attr('stroke-width', 1.8)
           .attr('filter', `url(#glow-${d.type})`);
       } else if (d.type === 'evidence') {
         // Document shape with dog-ear
-        sel.append('rect')
+        sel.append('circle')
           .attr('class', 'node-shape')
-          .attr('x', -r).attr('y', -(r * 0.8))
-          .attr('width', r * 2).attr('height', r * 1.6)
-          .attr('rx', 3)
+          .attr('r', r)
           .attr('fill', c).attr('fill-opacity', 0.12)
           .attr('stroke', c).attr('stroke-width', 1.8)
           .attr('filter', `url(#glow-${d.type})`);
