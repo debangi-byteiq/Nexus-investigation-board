@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import * as d3 from 'd3';
 import type { GraphData, GraphNode, GraphLink, D3Transform } from '../types';
 import { ENTITY_COLORS } from '../utils/constants';
+import { ENTITY_ICONS } from '../utils/constants';
 
 interface UseD3GraphOptions {
   data: GraphData;

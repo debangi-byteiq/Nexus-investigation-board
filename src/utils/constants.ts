@@ -1,4 +1,6 @@
 import type { EntityType } from '../types';
+import { Folder, User, Link, Paperclip, LucideProps } from 'lucide-react';
+import { ElementType } from 'react';
 
 export const ENTITY_COLORS: Record<EntityType, string> = {
   case:       '#ff5f5f',
@@ -14,11 +16,11 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
   evidence:   'Evidence',
 };
 
-export const ENTITY_ICONS: Record<EntityType, string> = {
-  case:       '📁',
-  person:     '👤',
-  caseEntity: '🔗',
-  evidence:   '📎',
+export const ENTITY_ICONS: Record<EntityType, ElementType<LucideProps>> = {
+  case: Folder,
+  person: User,
+  caseEntity: Link,
+  evidence: Paperclip,
 };
 
 export const ENTITY_RADII: Record<EntityType, number> = {
