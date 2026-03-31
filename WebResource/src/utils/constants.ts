@@ -1,4 +1,5 @@
 import type { EntityType } from '../types';
+import { FileChartColumn, User, Fingerprint, Eye, HatGlassesIcon, Car, Building2, MapPin, Siren } from 'lucide-react';
 
 export const ENTITY_COLORS: Record<EntityType, string> = {
   case:       '#ff5f5f',
@@ -24,16 +25,16 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
   arrest:     'Arrest',
 };
 
-export const ENTITY_ICONS: Record<EntityType, string> = {
-  case:       '📁',
-  person:     '👤',
-  caseEntity: '🔗',
-  firm:       '🏢',
-  vehicle:    '🚗',
-  location:   '📍',
-  evidence:   '📎',
-  incident:   '⚠️',
-  arrest:     '⛓️',
+export const ENTITY_ICONS: Record<EntityType, any> = {
+  case: FileChartColumn,
+  person: User,
+  caseEntity: Eye,
+  firm: Building2,
+  vehicle: Car,
+  location: MapPin,
+  evidence: Fingerprint,
+  incident: Siren,
+  arrest: HatGlassesIcon,
 };
 
 export const ENTITY_RADII: Record<EntityType, number> = {

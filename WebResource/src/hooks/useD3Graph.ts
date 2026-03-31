@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import type { GraphData, GraphNode, GraphLink, EntityType } from '../types';
 import { ENTITY_COLORS } from '../utils/constants';
 
+
 interface UseD3GraphOptions {
   data: GraphData;
   width: number;
@@ -12,6 +13,44 @@ interface UseD3GraphOptions {
   activeFilters: Set<EntityType>;
   searchQuery: string;
 }
+
+const ENTITY_ICON_PATHS: Record<EntityType, string[]> = {
+  case:  ["M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
+"M14 2v5a1 1 0 0 0 1 1h5",
+"M8 18v-2",
+"M12 18v-4",
+"M16 18v-6"],
+  person:     ['M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2', 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],
+  caseEntity: ['M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
+  firm:       ["M10 12h4",
+"M10 8h4",
+"M14 21v-3a2 2 0 0 0-4 0v3",
+"M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2",
+"M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"],
+  vehicle:    ['M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-3', 'M14 16a2 2 0 1 0 4 0 2 2 0 0 0-4 0', 'M6 16a2 2 0 1 0 4 0 2 2 0 0 0-4 0'],
+  location:   ['M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0', 'M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
+  evidence:   [
+    "M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4",
+    "M14 13.12c0 2.38 0 6.38-1 8.88",
+    "M17.29 21.02c.12-.6.43-2.3.5-3.02",
+    "M2 12a10 10 0 0 1 18-6",
+    "M2 16h.01",
+    "M21.8 16c.2-2 .131-5.354 0-6",
+    "M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2",
+    "M8.65 22c.21-.66.45-1.32.57-2",
+    "M9 6.8a6 6 0 0 1 9 5.2v2",
+  ],
+
+  incident:   ["M7 18v-6a5 5 0 1 1 10 0v6",
+"M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z",
+"M21 12h1",
+"M18.5 4.5 18 5",
+"M2 12h1",
+"M12 2v1",
+"m4.929 4.929.707.707",
+"M12 12v6"],
+  arrest:     ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10', 'M9 12l2 2 4-4'],
+};
 
 export function useD3Graph(
   svgRef: React.RefObject<SVGSVGElement | null>,
@@ -96,364 +135,114 @@ export function useD3Graph(
       .attr('fill', 'rgba(165,181,208,0.22)');
   }, []);
 
-  // ── Draw a single node's shape ─────────────────────────────────────────────
-
+  // ── Draw a single node's shape ───
+ 
   const drawNodeShape = useCallback((
-    g: d3.Selection<SVGGElement, GraphNode, SVGGElement, unknown>,
-  ) => {
-    const color = (d: GraphNode) => ENTITY_COLORS[d.type];
+  g: d3.Selection<SVGGElement, GraphNode, SVGGElement, unknown>,
+) => {
+  const color = (d: GraphNode) => ENTITY_COLORS[d.type];
 
-    // Outer glow ring (shown on hover/select)
-    g.append('circle')
-      .attr('class', 'node-outer-ring')
-      .attr('r', (d) => d.radius + 14)
-      .attr('fill', color)
-      .attr('fill-opacity', 0)
-      .attr('stroke', 'none');
+  // Outer glow ring
+  g.append('circle')
+    .attr('class', 'node-outer-ring')
+    .attr('r', (d) => d.radius + 14)
+    .attr('fill', color)
+    .attr('fill-opacity', 0)
+    .attr('stroke', 'none');
 
-    // Shape body per type
-    g.each(function (d) {
-      const sel = d3.select(this);
-      const c = color(d);
-      const r = d.radius;
+  // Shape body per type
+  g.each(function (d) {
+    const sel = d3.select(this);
+    const c = color(d);
+    const r = d.radius;
 
-      if (d.type === 'case') {
-        // Hexagon with inner ring
-        sel.append('polygon')
-          .attr('class', 'node-shape')
-          .attr('points', hexPoints(r))
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 2.6)
-          .attr('filter', `url(#glow-${d.type})`);
-        sel.append('polygon')
-          .attr('class', 'node-inner-ring')
-          .attr('points', hexPoints(r - 8))
-          .attr('fill', 'none')
-          .attr('stroke', c).attr('stroke-width', 0.6).attr('stroke-opacity', 0.35);
-      } else if (d.type === 'person') {
-        sel.append('circle')
-          .attr('class', 'node-shape')
-          .attr('r', r)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 2.2)
-          .attr('filter', `url(#glow-${d.type})`);
-        // Avatar ring
-        sel.append('circle')
-          .attr('class', 'node-inner-ring')
-          .attr('r', r - 7)
-          .attr('fill', 'none')
-          .attr('stroke', c).attr('stroke-width', 0.5).attr('stroke-opacity', 0.3);
-      } else if (d.type === 'caseEntity') {
-        sel.append('rect')
-          .attr('class', 'node-shape')
-          .attr('x', -r).attr('y', -(r * 0.6))
-          .attr('width', r * 2).attr('height', r * 1.2)
-          .attr('rx', r * 0.6)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.8)
-          .attr('filter', `url(#glow-${d.type})`);
-      } else if (d.type === 'firm') {
-        sel.append('rect')
-          .attr('class', 'node-shape')
-          .attr('x', -r).attr('y', -r)
-          .attr('width', r * 2).attr('height', r * 2)
-          .attr('rx', 4)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.9)
-          .attr('filter', `url(#glow-${d.type})`);
-      } else if (d.type === 'vehicle') {
-        sel.append('rect')
-          .attr('class', 'node-shape')
-          .attr('x', -r).attr('y', -(r * 0.5))
-          .attr('width', r * 2).attr('height', r)
-          .attr('rx', r * 0.25)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.9)
-          .attr('filter', `url(#glow-${d.type})`);
-        sel.append('circle')
-          .attr('cx', -r * 0.45)
-          .attr('cy', r * 0.62)
-          .attr('r', r * 0.18)
-          .attr('fill', c)
-          .attr('fill-opacity', 0.35)
-          .attr('stroke', c).attr('stroke-width', 1.1);
-        sel.append('circle')
-          .attr('cx', r * 0.45)
-          .attr('cy', r * 0.62)
-          .attr('r', r * 0.18)
-          .attr('fill', c)
-          .attr('fill-opacity', 0.35)
-          .attr('stroke', c).attr('stroke-width', 1.1);
-      } else if (d.type === 'location') {
-        sel.append('path')
-          .attr('class', 'node-shape')
-          .attr('d', `M 0 ${-r} C ${-0.78 * r} ${-r}, ${-r} ${-0.36 * r}, ${-r} ${0.24 * r} C ${-r} ${0.88 * r}, ${-0.34 * r} ${1.22 * r}, 0 ${1.66 * r} C ${0.34 * r} ${1.22 * r}, ${r} ${0.88 * r}, ${r} ${0.24 * r} C ${r} ${-0.36 * r}, ${0.78 * r} ${-r}, 0 ${-r} Z`)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.9)
-          .attr('filter', `url(#glow-${d.type})`);
-        sel.append('circle')
-          .attr('cx', 0)
-          .attr('cy', -r * 0.06)
-          .attr('r', r * 0.24)
-          .attr('fill', 'none')
-          .attr('stroke', c)
-          .attr('stroke-width', 1.1)
-          .attr('stroke-opacity', 0.75);
-      } else if (d.type === 'evidence') {
-        // Document shape with dog-ear
-        sel.append('rect')
-          .attr('class', 'node-shape')
-          .attr('x', -r).attr('y', -(r * 0.8))
-          .attr('width', r * 2).attr('height', r * 1.6)
-          .attr('rx', 3)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.8)
-          .attr('filter', `url(#glow-${d.type})`);
-        sel.append('polygon')
-          .attr('points', `${r - 9},${-(r * 0.8)} ${r},${-(r * 0.8) + 9} ${r},${-(r * 0.8)}`)
-          .attr('fill', c).attr('fill-opacity', 0.5);
-      } else if (d.type === 'incident') {
-        sel.append('polygon')
-          .attr('class', 'node-shape')
-          .attr('points', `0,${-r} ${r},0 0,${r} ${-r},0`)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.9)
-          .attr('filter', `url(#glow-${d.type})`);
-      } else if (d.type === 'arrest') {
-        sel.append('polygon')
-          .attr('class', 'node-shape')
-          .attr('points', `${-0.6 * r},${-r} ${0.6 * r},${-r} ${r},${-0.6 * r} ${r},${0.6 * r} ${0.6 * r},${r} ${-0.6 * r},${r} ${-r},${0.6 * r} ${-r},${-0.6 * r}`)
-          .attr('fill', c).attr('fill-opacity', 0.2)
-          .attr('stroke', c).attr('stroke-width', 1.9)
-          .attr('filter', `url(#glow-${d.type})`);
-      }
-    });
+    if (d.type === 'case') {
+      // Hexagon with inner ring — unchanged
+      sel.append('polygon')
+        .attr('class', 'node-shape')
+        .attr('points', hexPoints(r))
+        .attr('fill', c).attr('fill-opacity', 0.2)
+        .attr('stroke', c).attr('stroke-width', 2.6)
+        .attr('filter', `url(#glow-${d.type})`);
+      sel.append('polygon')
+        .attr('class', 'node-inner-ring')
+        .attr('points', hexPoints(r - 8))
+        .attr('fill', 'none')
+        .attr('stroke', c).attr('stroke-width', 0.6).attr('stroke-opacity', 0.35);
+    } else {
+      // All other types: circle with matching color
+      sel.append('circle')
+        .attr('class', 'node-shape')
+        .attr('r', r)
+        .attr('fill', c).attr('fill-opacity', 0.2)
+        .attr('stroke', c).attr('stroke-width', 2.0)
+        .attr('filter', `url(#glow-${d.type})`);
+      sel.append('circle')
+        .attr('class', 'node-inner-ring')
+        .attr('r', r - 7)
+        .attr('fill', 'none')
+        .attr('stroke', c).attr('stroke-width', 0.5).attr('stroke-opacity', 0.3);
+    }
+  });
 
-    // Compact vector icon (entity marker)
-    g.each(function (d) {
-      const icon = d3.select(this)
-        .append('g')
-        .attr('class', 'node-icon')
-        .attr('transform', () => {
-          if (d.type === 'case') return 'scale(1.34)';
-          if (d.type === 'person') return 'scale(1.28)';
-          if (d.type === 'caseEntity') return 'scale(1.26)';
-          if (d.type === 'firm') return 'scale(1.24)';
-          if (d.type === 'vehicle') return 'scale(1.2)';
-          if (d.type === 'location') return 'scale(1.22)';
-          if (d.type === 'incident') return 'scale(1.2)';
-          if (d.type === 'arrest') return 'scale(1.2)';
-          return 'scale(1.3)';
-        })
-        .attr('fill', 'rgba(244,248,255,0.96)')
-        .attr('stroke', 'rgba(244,248,255,0.96)')
-        .attr('stroke-linecap', 'round')
-        .attr('stroke-linejoin', 'round')
-        .style('pointer-events', 'none');
+  // Icon
+  g.each(function(d) {
+    const iconG = d3.select(this)
+      .append('g')
+      .attr('class', 'node-icon')
+      .style('pointer-events', 'none');
 
-      icon.append('circle')
-        .attr('cx', 0)
-        .attr('cy', -0.2)
-        .attr('r', d.type === 'case' ? 8.8 : 7.4)
-        .attr('fill', 'rgba(7, 12, 23, 0.54)')
-        .attr('stroke', 'rgba(220,228,245,0.26)')
-        .attr('stroke-width', 0.85);
+    iconG.append('circle')
+      .attr('cx', 0)
+      .attr('cy', 0)
+      .attr('r', d.type === 'case' ? 9.5 : 8)
+      .attr('fill', 'rgba(7, 12, 23, 0.54)')
+      .attr('stroke', 'rgba(220,228,245,0.26)')
+      .attr('stroke-width', 0.85);
 
-      if (d.type === 'case') {
-        // Folder-like case icon
-        icon.append('rect')
-          .attr('x', -7.4)
-          .attr('y', -4.4)
-          .attr('width', 14.8)
-          .attr('height', 9.6)
-          .attr('rx', 1.8)
-          .attr('fill', 'rgba(244,248,255,0.14)')
-          .attr('stroke-width', 1.45);
-        icon.append('path')
-          .attr('d', 'M -6.3 -4.4 L -2.1 -4.4 L -0.9 -6.3 L 3.2 -6.3 L 4.5 -4.4')
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.45);
-      } else if (d.type === 'person') {
-        // Person icon
-        icon.append('circle')
-          .attr('cx', 0)
-          .attr('cy', -2.9)
-          .attr('r', 2.45)
-          .attr('fill', 'rgba(244,248,255,0.2)')
-          .attr('stroke-width', 1.4);
-        icon.append('path')
-          .attr('d', 'M -5.3 4.2 C -4.2 1.6, -2.1 0.6, 0 0.6 C 2.1 0.6, 4.2 1.6, 5.3 4.2')
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.55);
-      } else if (d.type === 'caseEntity') {
-        if (d.details.kind === 'officer') {
-          // Officer badge icon (distinct from generic case entity)
-          icon.append('path')
-            .attr('d', 'M 0 -5.2 L 4.4 -2.8 L 4.4 2.4 L 0 5.6 L -4.4 2.4 L -4.4 -2.8 Z')
-            .attr('fill', 'rgba(244,248,255,0.14)')
-            .attr('stroke-width', 1.35);
-          icon.append('circle')
-            .attr('cx', 0)
-            .attr('cy', -0.4)
-            .attr('r', 1.45)
-            .attr('fill', 'none')
-            .attr('stroke-width', 1.2);
-          icon.append('path')
-            .attr('d', 'M -2.3 2.5 C -1.8 1.5, -0.9 1.1, 0 1.1 C 0.9 1.1, 1.8 1.5, 2.3 2.5')
-            .attr('fill', 'none')
-            .attr('stroke-width', 1.2);
-        } else {
-          // Generic link icon for case entity
-          icon.append('circle')
-            .attr('cx', -3.5)
-            .attr('cy', 0)
-            .attr('r', 2.35)
-            .attr('fill', 'none')
-            .attr('stroke-width', 1.45);
-          icon.append('circle')
-            .attr('cx', 3.5)
-            .attr('cy', 0)
-            .attr('r', 2.35)
-            .attr('fill', 'none')
-            .attr('stroke-width', 1.45);
-          icon.append('line')
-            .attr('x1', -1.2)
-            .attr('y1', 0)
-            .attr('x2', 1.2)
-            .attr('y2', 0)
-            .attr('stroke-width', 1.45);
-        }
-      } else if (d.type === 'firm') {
-        // Building icon
-        icon.append('rect')
-          .attr('x', -4.9)
-          .attr('y', -5.8)
-          .attr('width', 9.8)
-          .attr('height', 11.6)
-          .attr('rx', 1.2)
-          .attr('fill', 'rgba(244,248,255,0.14)')
-          .attr('stroke-width', 1.35);
-        icon.append('line').attr('x1', -2.9).attr('y1', -2.8).attr('x2', -1.6).attr('y2', -2.8).attr('stroke-width', 1.2);
-        icon.append('line').attr('x1', 1.6).attr('y1', -2.8).attr('x2', 2.9).attr('y2', -2.8).attr('stroke-width', 1.2);
-        icon.append('line').attr('x1', -2.9).attr('y1', 0).attr('x2', -1.6).attr('y2', 0).attr('stroke-width', 1.2);
-        icon.append('line').attr('x1', 1.6).attr('y1', 0).attr('x2', 2.9).attr('y2', 0).attr('stroke-width', 1.2);
-        icon.append('line').attr('x1', -0.8).attr('y1', 5.2).attr('x2', -0.8).attr('y2', 2.3).attr('stroke-width', 1.2);
-        icon.append('line').attr('x1', 0.8).attr('y1', 5.2).attr('x2', 0.8).attr('y2', 2.3).attr('stroke-width', 1.2);
-      } else if (d.type === 'vehicle') {
-        // Car icon
-        icon.append('path')
-          .attr('d', 'M -5.8 1.8 L -4.2 -1.6 L 4.2 -1.6 L 5.8 1.8 Z')
-          .attr('fill', 'rgba(244,248,255,0.12)')
-          .attr('stroke-width', 1.35);
-        icon.append('rect')
-          .attr('x', -5.8)
-          .attr('y', 1.6)
-          .attr('width', 11.6)
-          .attr('height', 2.7)
-          .attr('rx', 1.2)
-          .attr('fill', 'rgba(244,248,255,0.12)')
-          .attr('stroke-width', 1.35);
-        icon.append('circle').attr('cx', -3.2).attr('cy', 4.7).attr('r', 1.1).attr('fill', 'none').attr('stroke-width', 1.2);
-        icon.append('circle').attr('cx', 3.2).attr('cy', 4.7).attr('r', 1.1).attr('fill', 'none').attr('stroke-width', 1.2);
-      } else if (d.type === 'location') {
-        // Pin icon
-        icon.append('path')
-          .attr('d', 'M 0 -5.9 C -2.8 -5.9 -4.7 -3.9 -4.7 -1.4 C -4.7 1.7 -1.9 3.5 0 6 C 1.9 3.5 4.7 1.7 4.7 -1.4 C 4.7 -3.9 2.8 -5.9 0 -5.9 Z')
-          .attr('fill', 'rgba(244,248,255,0.14)')
-          .attr('stroke-width', 1.35);
-        icon.append('circle')
-          .attr('cx', 0)
-          .attr('cy', -1.4)
-          .attr('r', 1.35)
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.2);
-      } else if (d.type === 'evidence') {
-        // Document icon
-        icon.append('rect')
-          .attr('x', -5.2)
-          .attr('y', -6.2)
-          .attr('width', 10.4)
-          .attr('height', 12.4)
-          .attr('rx', 1.4)
-          .attr('fill', 'rgba(244,248,255,0.15)')
-          .attr('stroke-width', 1.35);
-        icon.append('line')
-          .attr('x1', -3)
-          .attr('y1', -2)
-          .attr('x2', 3)
-          .attr('y2', -2)
-          .attr('stroke-width', 1.3);
-        icon.append('line')
-          .attr('x1', -3)
-          .attr('y1', 1.2)
-          .attr('x2', 2.3)
-          .attr('y2', 1.2)
-          .attr('stroke-width', 1.3);
-      } else if (d.type === 'incident') {
-        // Warning/incident icon
-        icon.append('path')
-          .attr('d', 'M 0 -5.7 L 5.3 4.8 L -5.3 4.8 Z')
-          .attr('fill', 'rgba(244,248,255,0.14)')
-          .attr('stroke-width', 1.3);
-        icon.append('line')
-          .attr('x1', 0)
-          .attr('y1', -2.2)
-          .attr('x2', 0)
-          .attr('y2', 1.5)
-          .attr('stroke-width', 1.35);
-        icon.append('circle')
-          .attr('cx', 0)
-          .attr('cy', 3.3)
-          .attr('r', 0.8)
-          .attr('fill', 'rgba(244,248,255,0.96)')
-          .attr('stroke', 'none');
-      } else if (d.type === 'arrest') {
-        // Handcuff-inspired icon
-        icon.append('circle')
-          .attr('cx', -2.5)
-          .attr('cy', 0)
-          .attr('r', 2.2)
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.3);
-        icon.append('circle')
-          .attr('cx', 2.5)
-          .attr('cy', 0)
-          .attr('r', 2.2)
-          .attr('fill', 'none')
-          .attr('stroke-width', 1.3);
-        icon.append('line')
-          .attr('x1', -0.7)
-          .attr('y1', 0)
-          .attr('x2', 0.7)
-          .attr('y2', 0)
-          .attr('stroke-width', 1.3);
-      }
-    });
+    const paths = ENTITY_ICON_PATHS[d.type];
+    if (!paths) return;
 
-    // Label
-    g.append('text')
-      .attr('class', 'node-label')
-      .attr('text-anchor', 'middle')
-      .attr('y', (d) => d.radius + 16)
-      .attr('fill', 'rgba(234,241,255,0.98)')
-      .attr('font-size', '10.8px')
-      .attr('font-weight', '700')
-      .attr('font-family', 'Space Grotesk, sans-serif')
-      .style('pointer-events', 'none')
-      .text((d) => d.label.length > 15 ? d.label.slice(0, 14) + '…' : d.label);
+    const scale = (d.type === 'case' ? 9.5 : 8) / 12;
 
-    // Sublabel
-    g.append('text')
-      .attr('class', 'node-sublabel')
-      .attr('text-anchor', 'middle')
-      .attr('y', (d) => d.radius + 28)
-      .attr('fill', 'rgba(148,168,205,0.88)')
-      .attr('font-size', '8.9px')
-      .attr('font-family', 'JetBrains Mono, monospace')
-      .attr('letter-spacing', '0.04em')
-      .style('pointer-events', 'none')
-      .text((d) => d.sublabel);
-  }, []);
+    iconG.append('g')
+      .attr('transform', `scale(${scale}) translate(-12,-12)`)
+      .selectAll('path')
+      .data(paths)
+      .enter()
+      .append('path')
+      .attr('d', p => p)
+      .attr('fill', 'none')
+      .attr('stroke', 'rgba(244,248,255,0.92)')
+      .attr('stroke-width', 2 / scale)
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-linejoin', 'round');
+  });
+
+  // Label
+  g.append('text')
+    .attr('class', 'node-label')
+    .attr('text-anchor', 'middle')
+    .attr('y', (d) => d.radius + 16)
+    .attr('fill', 'rgba(234,241,255,0.98)')
+    .attr('font-size', '10.8px')
+    .attr('font-weight', '700')
+    .attr('font-family', 'Space Grotesk, sans-serif')
+    .style('pointer-events', 'none')
+    .text((d) => d.label.length > 15 ? d.label.slice(0, 14) + '…' : d.label);
+
+  // Sublabel
+  g.append('text')
+    .attr('class', 'node-sublabel')
+    .attr('text-anchor', 'middle')
+    .attr('y', (d) => d.radius + 28)
+    .attr('fill', 'rgba(148,168,205,0.88)')
+    .attr('font-size', '8.9px')
+    .attr('font-family', 'JetBrains Mono, monospace')
+    .attr('letter-spacing', '0.04em')
+    .style('pointer-events', 'none')
+    .text((d) => d.sublabel);
+}, []);
 
   // ── Init graph ──────────────────────────────────────────────────────────────
 
@@ -503,13 +292,15 @@ export function useD3Graph(
       .force('link', d3.forceLink<GraphNode, GraphLink>(links)
         .id(d => d.id)
         .distance(l => {
-          const tgt = l.target as GraphNode;
-          if (tgt.type === 'caseEntity') return 110;
-          if (tgt.type === 'firm' || tgt.type === 'vehicle' || tgt.type === 'location') return 130;
-          if (tgt.type === 'evidence') return 170;
-          if (tgt.type === 'incident' || tgt.type === 'arrest') return 150;
-          return 165;
-        })
+  const tgt = l.target as GraphNode;
+
+  if (tgt.type === 'caseEntity') return 160;
+  if (tgt.type === 'firm' || tgt.type === 'vehicle' || tgt.type === 'location') return 190;
+  if (tgt.type === 'evidence') return 240;
+  if (tgt.type === 'incident' || tgt.type === 'arrest') return 210;
+
+  return 220;
+})
         .strength(0.45))
       .force('charge', d3.forceManyBody().strength(-620))
       .force('collide', d3.forceCollide<GraphNode>(d => d.radius + 22))
@@ -598,7 +389,7 @@ export function useD3Graph(
     setTimeout(() => fitView(), 800);
   }, [data, width, height, onNodeClick, onBackgroundClick, setupDefs, drawNodeShape]);
 
-  // ── Highlight / dim ─────────────────────────────────────────────────────────
+  // ── Highlight / dim ──
 
   const highlightNeighbours = useCallback((nodeId: string) => {
     if (!gRootRef.current) return;
@@ -636,7 +427,7 @@ export function useD3Graph(
       .attr('filter', d => `url(#glow-${d.type})`);
   }, []);
 
-  // ── Filter / search updates ─────────────────────────────────────────────────
+  // ── Filter / search updates ──
 
   useEffect(() => {
     if (!gRootRef.current) return;
@@ -661,7 +452,7 @@ export function useD3Graph(
       });
   }, [activeFilters, searchQuery]);
 
-  // ── Zoom controls ───────────────────────────────────────────────────────────
+  // ── Zoom controls ──
 
   const zoomIn = useCallback(() => {
     if (!svgRef.current || !zoomRef.current) return;

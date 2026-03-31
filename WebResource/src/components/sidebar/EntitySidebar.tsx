@@ -31,7 +31,7 @@ const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClic
       default:           return '';
     }
   };
-
+const Icon = node ? ENTITY_ICONS[node.type] : null;
   return (
     <>
       {/* Click-away backdrop */}
@@ -64,7 +64,7 @@ const EntitySidebar: React.FC<Props> = ({ node, open, onClose, onRelatedCaseClic
               style={{ background: color + '18', borderColor: color + '44' }}
               aria-hidden="true"
             >
-              {node ? ENTITY_ICONS[node.type] : '◉'}
+              {Icon ? <Icon /> : '◉'}
             </div>
 
             <div className="sidebar-title-col">
